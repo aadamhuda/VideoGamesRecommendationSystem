@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<head>
+    <link rel="shortcut icon" type="image/png" href="{% static 'icon.gif' %}"/>
+</head>
+<body style="height:100%"  class="bg-light">
+    {% load bootstrap5 %}
+    
+    {% bootstrap_css %}
+    {% bootstrap_javascript %}
+
+    <div class=" text-left bg-light" style="height:100%">
+        <div class="p-5 text-left bg-light">
+            <div class="jumbotron">
+                <h1 class="display-4">Video Games Recommendation System</h1>
+                <hr class="my-4">
+            </div>
+        </div>
+        <div class=" bg-light">
+            <div class="row">
+                <div class="col"></div>
+                <div class="col">
+                    <h1 class="display-5 text-center ">Login</h1>
+
+                    <form action="" method="POST">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="user" class = "form-label">Username</label>
+                            {{form.username}}
+                        </div>
+                        <div class="form-group">
+                            <label for="Password" class = "form-label">Password</label>
+                            {{form.password}}
+                        </div><br>
+                        <button type="submit" class="btn btn-primary">Login</button> 
+                        <a href="./sign-up"><button type = "button" class="btn btn-secondary">Sign Up</button></a>
+                    </form><br>
+                    {% for message in messages %}
+                        <div class="alert alert-danger">
+                            <a class="close" href="#" data-dismiss="alert"></a>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="col">
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+
+</body>
+
+

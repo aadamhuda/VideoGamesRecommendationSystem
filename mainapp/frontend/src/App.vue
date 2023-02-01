@@ -3,27 +3,31 @@ import HelloWorld from './components/HelloWorld.vue'
 </script>
 
 <template>
-  <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
-  </div>
-  <HelloWorld msg="Vite + Vue" />
-</template>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <a class="navbar-brand" href="#"><h1 class="display-6">Auction App</h1></a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav">
+            <li class="nav-item">
+              <router-link class="nav-link" to="/view_items">All Items</router-link>
+            </li>
+            <li class="nav-item">
+              <router-link class="nav-link" to="/Profile">Profile</router-link>
+            </li>
+            <li class="nav-item">
+              <router-link class="nav-link" to="/my_items">My Items</router-link>
+            </li>
+            <li class="nav-item">
+              <router-link class="nav-link" to="/auctionForm">Post an Item</router-link>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="http://localhost:8000/logout" >Logout</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
 
-<style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
-}
-</style>
+    <router-view></router-view>
+</template>
