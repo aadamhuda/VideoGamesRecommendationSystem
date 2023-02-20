@@ -5,7 +5,7 @@ from django.contrib.auth.models import AbstractUser
 class MyUser(AbstractUser):
     date_of_birth = models.DateField(default='1970-01-01')
 
-    def getDOB(self):
+    def get_dob(self):
         return self.date_of_birth
     
     def to_dict(self):
@@ -24,22 +24,25 @@ class Question(models.Model):
     disagree = models.CharField(max_length=100)
     strongly_disagree = models.CharField(max_length=100)
 
-    def getQuestion(self):
+    def __str__(self):
         return self.question_text
 
-    def getStronglyAgree(self):
+    def get_question(self):
+        return self.question_text
+
+    def get_strongly_agree(self):
         return self.strongly_agree
 
-    def getAgree(self):
+    def get_agree(self):
         return self.agree
 
-    def getNeither(self):
+    def get_neither(self):
         return self.neither
 
-    def getDisagree(self):
+    def get_disagree(self):
         return self.disagree
 
-    def getStronglyDisagree(self):
+    def get_strongly_disagree(self):
         return self.strongly_disagree
 
     def to_dict(self):
@@ -53,69 +56,96 @@ class Question(models.Model):
             'strongly_disagree' : self.strongly_disagree,
         }
 
-class Genres(models.Model):
-    genre = models.CharField(max_length=50)
-    user_id = models.IntegerField()
-    weight = models.DecimalField(decimal_places=3, max_digits=4)
 
-    def getGenre(self):
+class Profile(models.Model):
+    keyword = models.CharField(max_length=500)
+    genre = models.CharField(max_length=150)
+    num_players_preference = models.CharField(max_length=50)
+    user_id = models.IntegerField()
+
+    def get_keyword(self):
+        return self.keyword
+
+    def get_genre(self):
         return self.genre
 
-    def getUserID(self):
+    def get_num_players_preference(self):
+        return self.num_players_preference
+
+    def get_user_id(self):
         return self.user_id
-    
-    def getWeight(self):
-        return self.weight
 
     def to_dict(self):
         return {
-            'genre_id' : self.id,
+            'profile_id' : self.id,
+            'keyword' : self.keyword,
             'genre' : self.genre,
+            'num_players_preference' : self.num_players_preference,
             'user_id' : self.user_id,
-            'weight' : self.weight,
-        }
-
-class Keywords(models.Model):
-    keyword = models.CharField(max_length=50)
-    user_id = models.IntegerField()
-    weight = models.DecimalField(decimal_places=3, max_digits=4)
-
-    def getKeyword(self):
-        return self.keyword
-
-    def getUserID(self):
-        return self.user_id
-
-    def getWeight(self):
-        return self.weight
-
-    def to_dict(self):
-        return {
-            'keyword_id' : self.id,
-            'keyword' : self.keyword,
-            'user_id' : self.user_id,
-            'weight' : self.weight,
         }
 
 
-class TempProfile(models.Model):
-    keyword = models.CharField(max_length=50)
-    user_id = models.IntegerField()
-    weight = models.DecimalField(decimal_places=3, max_digits=4)
+class Game(models.Model):
+    title = models.CharField(max_length=200)
+    release_date = models.CharField(max_length=50)
+    genre = models.CharField(max_length=200)
+    platforms = models.CharField(max_length=50)
+    developer = models.CharField(max_length=50)
+    esrb_rating = models.CharField(max_length=50)
+    esrbs = models.CharField(max_length=100)
+    metascore = models.IntegerField()
+    userscore = models.CharField(max_length=50)
+    num_players = models.CharField(max_length=50)
+    summary = models.TextField()
 
-    def getKeyword(self):
-        return self.keyword
+    def __str__(self):
+        return self.title
 
-    def getUserID(self):
-        return self.user_id
+    def get_title(self):
+        return self.title
+    
+    def get_release_date(self):
+        return self.release_date
 
-    def getWeight(self):
-        return self.weight
+    def get_genre(self):
+        return self.genre
+
+    def get_platforms(self):
+        return self.platforms
+
+    def get_developer(self):
+        return self.developer
+
+    def get_esrb_rating(self):
+        return self.esrb_rating
+
+    def get_esrbs(self):
+        return self.esrbs
+
+    def get_metascore(self):
+        return self.metascore
+
+    def get_userscore(self):
+        return self.userscore
+
+    def get_num_players(self):
+        return self.num_players
+
+    def get_summary(self):
+        return self.summary
 
     def to_dict(self):
         return {
-            'keyword_id' : self.id,
-            'keyword' : self.keyword,
-            'user_id' : self.user_id,
-            'weight' : self.weight,
+            'game_id': self.id,
+            'title': self.title,
+            'release_date': self.release_date,
+            'genre': self.genre,
+            'platforms': self.platforms,
+            'developer': self.developer,
+            'esrb_rating': self.esrb_rating,
+            'esrbs': self.esrbs,
+            'metascore': self.metascore,
+            'userscore': self.userscore,
+            'num_players': self.num_players,
+            'summary': self.summary,
         }

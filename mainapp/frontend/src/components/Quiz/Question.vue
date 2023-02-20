@@ -6,14 +6,23 @@ import { useRoute } from 'vue-router'
 export default defineComponent( {
     created() {
         this.get_questions()
+        this.get_id()
     },
     data() {
         return {
             questions: [],
-            picked:[]
+            picked:[],
+            user_id: 0,
+            success: false
         }
     },
     methods : {
+        async get_id() {
+            let response = await fetch("http://localhost:8000/ses-user", {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
+            let data = await response.json()
+            console.log(data);
+            this.user_id = data.user_id
+        },
         async get_questions() {
             let response = await fetch("http://localhost:8000/getQuestions", {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
             let data = await response.json()
@@ -21,13 +30,16 @@ export default defineComponent( {
         },
         async saveTempProfile() {
             console.log("saved")
-            let response = await fetch("http://localhost:8000/questions", {
+            this.get_id()
+            let response = await fetch("http://localhost:8000/storeTempProfile", {
                 method: 'POST',
                 body: JSON.stringify({
                     user_id: this.user_id,
                     picked_items: this.picked,
                 })
             })
+            let data = await response.json()
+            this.success = data.success
 
         },
     },
@@ -55,5 +67,9 @@ export default defineComponent( {
             </div>
             <button type="submit">Submit</button>
         </form>
+
+        <p>{{ success }}</p>
+
+        
     </div>
 </template>

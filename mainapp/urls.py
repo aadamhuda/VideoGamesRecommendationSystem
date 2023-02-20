@@ -8,4 +8,5 @@ urlpatterns = [
     path('ses-user', views.get_user, name="Get UserID"),
     path('getQuestions', views.get_questions, name="Get Questions"),
     path('storeTempProfile', views.store_temp_profile, name="Store Temp Profile"),
+    path('loadDB',views.loadDataSet, name="load DB")
 ]

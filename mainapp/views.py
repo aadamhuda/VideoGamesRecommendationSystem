@@ -3,7 +3,7 @@ from django.http import HttpRequest, HttpResponse, JsonResponse, HttpResponseRed
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import logout, authenticate, login
 from .forms import LoginForm, SignUpForm
-from .models import Question
+from .models import Question, Game
 from django.contrib import messages
 from django.contrib.auth import logout
 from PIL import Image
@@ -61,21 +61,70 @@ def get_user(request: HttpRequest) -> JsonResponse:
         return JsonResponse ( {
             'user_id' : request.session.__getitem__("_auth_user_id")
         }, safe=False)
-
+#---------------------------------------quiz------------------------------------------------
 def get_questions(request: HttpRequest) -> JsonResponse:
     if request.method == 'GET':
         return JsonResponse (
             [i.to_dict() for i in Question.objects.all()]
          , safe=False)
 
+@csrf_exempt
 def store_temp_profile(request: HttpRequest) -> JsonResponse:
+    success = False
     if request.method == 'POST':
         data = json.loads(request.body.decode('utf-8'))
+        if (len(data['picked_items']) == Question.objects.count()):
+            temp_profile = []
+            for picked in data['picked_items']:
+                print(picked)
+                if (picked != None):
+                    success = True
+                    sub_list = picked.split("; ")
+                    for item in sub_list:
+                        temp_profile.append(item)
+                else:
+                    success = False
+                    return JsonResponse({
+                        'success': success
+                    })
+            print(temp_profile)
+            print (success)
+            print (data['user_id'])
+        
+        if (success == True):
+            num_preference = temp_profile.pop(0)
+            
+        return JsonResponse({
+            'success': success
+        })
+    
         
 def loadDataSet(request: HttpRequest) -> HttpResponse:
-    games = pd.read_csv('./static/metacritic_games_master.csv')
-    tf = TfidfVectorizer(stop_words="english")
-    games['genre'] = games['genre'].fillna('')
-    
-    pass
+    games = pd.read_csv('.\mainapp\static\metacritic_games_master.csv')
+    Game.objects.all().delete()
 
+    rows = games.iterrows()
+
+    objs = [
+        Game(
+            id = index,
+            title = row['title'],
+            release_date = row['release_date'],
+            genre = row['genre'],
+            platforms = row['platforms'],
+            developer = row['developer'],
+            esrb_rating = row['esrb_rating'],
+            esrbs = row['ESRBs'],
+            metascore = row['metascore'],
+            userscore = row['userscore'],
+            num_players = row['num_players'],
+            summary = row['summary'],
+        )
+        for index, row in rows
+    ]
+
+    Game.objects.bulk_create(objs)
+
+    return JsonResponse({
+            'success': True
+        })
