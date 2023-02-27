@@ -24,14 +24,14 @@ export default defineComponent( {
             this.user_id = data.user_id
         },
         async get_questions() {
-            let response = await fetch("http://localhost:8000/getQuestions", {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
+            let response = await fetch("http://localhost:8000/get-questions", {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
             let data = await response.json()
             this.questions = data
         },
         async saveTempProfile() {
             console.log("saved")
             this.get_id()
-            let response = await fetch("http://localhost:8000/storeTempProfile", {
+            let response = await fetch("http://localhost:8000/store-temp-profile", {
                 method: 'POST',
                 body: JSON.stringify({
                     user_id: this.user_id,
@@ -69,7 +69,9 @@ export default defineComponent( {
         </form>
 
         <p>{{ success }}</p>
-
+        <div v-if="success == true"><router-link class="nav-link" to="/QuizGames"><button>Next</button></router-link></div>
         
+
+
     </div>
 </template>

@@ -59,7 +59,7 @@ class Question(models.Model):
 
 class Profile(models.Model):
     keyword = models.CharField(max_length=500)
-    genre = models.CharField(max_length=150)
+    genre = models.CharField(max_length=500)
     num_players_preference = models.CharField(max_length=50)
     user_id = models.IntegerField()
 
