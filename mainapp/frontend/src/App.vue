@@ -18,6 +18,18 @@
             <li class="nav-item">
               <router-link class="nav-link" to="/Quiz">Quiz</router-link>
             </li>
+            <li class="nav-item">
+              <router-link class="nav-link" to="/PlayList">Play List</router-link>
+            </li>
+            <li class="nav-item">
+              <router-link class="nav-link" to="/CompletedList">Completed List</router-link>
+            </li>
+            <li class="nav-item">
+              <router-link class="nav-link" to="/DislikeList">Dislike List</router-link>
+            </li>
+            <li class="nav-item">
+              <router-link class="nav-link" to="/Profile">Profile</router-link>
+            </li>
           </ul>
         </div>
       </nav>

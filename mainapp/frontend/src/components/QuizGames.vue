@@ -52,12 +52,13 @@ export default defineComponent( {
     <router-link class="nav-link" to="/Quiz"><button>Back</button></router-link>
     <p>{{ checked_names }}</p>
     <form @submit.prevent="this.saveProfile()">
+        <button type="submit">Submit</button>
         <div v-for="game in this.games_list">
             <div>
                 <p>{{game}}</p>
                 <input v-model = "checked_names" type="checkbox" :id="game" :name="game" v-bind:value="game"><br>
             </div>
         </div>
-        <button type="submit">Submit</button>
+        
     </form>
 </template>

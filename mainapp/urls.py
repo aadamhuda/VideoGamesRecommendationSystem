@@ -11,5 +11,6 @@ urlpatterns = [
     path('load-db',views.load_db, name="load DB"),
     path('get-quiz-games',views.get_quiz_games, name="Get Quiz Games"),
     path('store-profile', views.store_profile, name="Store Profile"),
+    path('user-recommendations', views.user_recommendations, name="User Recommendations"),
     
 ]

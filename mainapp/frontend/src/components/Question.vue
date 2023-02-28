@@ -40,7 +40,6 @@ export default defineComponent( {
             })
             let data = await response.json()
             this.success = data.success
-
         },
     },
 } )

@@ -56,9 +56,8 @@ class Question(models.Model):
             'strongly_disagree' : self.strongly_disagree,
         }
 
-
 class Profile(models.Model):
-    keyword = models.CharField(max_length=500)
+    keyword = models.TextField()
     genre = models.CharField(max_length=500)
     num_players_preference = models.CharField(max_length=50)
     user_id = models.IntegerField()
@@ -83,6 +82,58 @@ class Profile(models.Model):
             'num_players_preference' : self.num_players_preference,
             'user_id' : self.user_id,
         }
+    
+class PlayList(models.Model):
+    play_list_game = models.CharField(max_length=100)
+    user_id = models.IntegerField()
+
+    def get_keyword(self):
+        return self.play_list_game
+
+    def get_user_id(self):
+        return self.user_id
+
+    def to_dict(self):
+        return {
+            'play_list_id' : self.id,
+            'play_list_game' : self.play_list_game,
+            'user_id' : self.user_id,
+        }
+    
+class CompletedList(models.Model):
+    completed_list_game = models.CharField(max_length=100)
+    user_id = models.IntegerField()
+
+    def get_keyword(self):
+        return self.completed_list_game
+
+    def get_user_id(self):
+        return self.user_id
+
+    def to_dict(self):
+        return {
+            'play_list_id' : self.id,
+            'play_list_game' : self.completed_list_game,
+            'user_id' : self.user_id,
+        }
+    
+class DislikeList(models.Model):
+    dislike_list_game = models.CharField(max_length=100)
+    user_id = models.IntegerField()
+
+    def get_keyword(self):
+        return self.dislike_list_game
+
+    def get_user_id(self):
+        return self.user_id
+
+    def to_dict(self):
+        return {
+            'play_list_id' : self.id,
+            'play_list_game' : self.dislike_list_game,
+            'user_id' : self.user_id,
+        }
+
 
 
 class Game(models.Model):
