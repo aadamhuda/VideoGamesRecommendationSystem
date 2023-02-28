@@ -112,28 +112,15 @@ def store_profile(request: HttpRequest) -> JsonResponse:
     if request.method == 'POST':
         data = json.loads(request.body.decode('utf-8'))
         if (len(data['games_choice']) >0):
-            temp_profile = []
-            for picked in data['picked_items']:
-                print(picked)
-        if (success == True):
-            num_preference = temp_profile.pop(0)
-            if(Profile.objects.filter(user_id=data['user_id']).exists()):
-                print("exists")
-                player_profile = Profile.objects.get(user_id=data['user_id'])
-                player_profile.keyword = temp_profile
-                player_profile.genre = temp_profile
-                player_profile.num_players_preference = num_preference
-                player_profile.save()
-            else:
-                 player_profile = Profile.objects.create(
-                    keyword = "",
-                    genre = temp_profile,
-                    num_players_preference = num_preference,
-                    user_id = data['user_id'],
-                 )
-        return JsonResponse({
-            'success': success
-        })
+            genres = []
+            keywords = []
+            for game in data['games_choice']:
+                print(game)
+            
+            return JsonResponse({
+                'success': success
+            })
+        
         
 def get_quiz_games(request: HttpRequest) -> JsonResponse:
     success = False
