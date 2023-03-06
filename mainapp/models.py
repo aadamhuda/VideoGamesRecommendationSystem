@@ -58,7 +58,7 @@ class Question(models.Model):
 
 class Profile(models.Model):
     keyword = models.TextField()
-    genre = models.CharField(max_length=500)
+    genre = models.TextField()
     num_players_preference = models.CharField(max_length=50)
     user_id = models.IntegerField()
 
@@ -112,8 +112,8 @@ class CompletedList(models.Model):
 
     def to_dict(self):
         return {
-            'play_list_id' : self.id,
-            'play_list_game' : self.completed_list_game,
+            'completed_list_id' : self.id,
+            'completed_list_game' : self.completed_list_game,
             'user_id' : self.user_id,
         }
     
@@ -129,8 +129,8 @@ class DislikeList(models.Model):
 
     def to_dict(self):
         return {
-            'play_list_id' : self.id,
-            'play_list_game' : self.dislike_list_game,
+            'dislike_list_id' : self.id,
+            'dislike_list_game' : self.dislike_list_game,
             'user_id' : self.user_id,
         }
 

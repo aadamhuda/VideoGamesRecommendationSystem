@@ -10,7 +10,7 @@
       <div class="collapse navbar-collapse">
         <ul class="navbar-nav">
             <li class="nav-item">
-              <router-link class="nav-link" to="">Home</router-link>
+              <router-link class="nav-link" to="/Home">Home</router-link>
             </li>
             <li class="nav-item">
               <router-link class="nav-link" to="/Recommendations">Recommendations</router-link>
@@ -30,9 +30,11 @@
             <li class="nav-item">
               <router-link class="nav-link" to="/Profile">Profile</router-link>
             </li>
+            <li class="nav-item">
+              <a class="nav-link" href="http://localhost:8000/logout" >Logout</a>
+            </li>
           </ul>
         </div>
       </nav>
-
     <router-view></router-view>
 </template>

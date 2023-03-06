@@ -5,6 +5,7 @@ import "bootstrap/dist/css/bootstrap.min.css"
 import "bootstrap"
 
 import App from './App.vue'
+import Home from './components/Home.vue'
 import RecommendationsPage from './components/RecommendationsPage.vue'
 import Quiz from './components/Question.vue'
 import QuizGames from './components/QuizGames.vue'
@@ -16,6 +17,7 @@ import Profile from './components/Profile.vue'
 const router = createRouter({
     history: createWebHistory(),
     routes: [
+        {path: '/Home', name: 'Home', component: Home},
         {path: '/Recommendations', name: 'Recommendations', component: RecommendationsPage},
         {path: '/Quiz', name: 'Quiz', component: Quiz},
         {path: '/QuizGames', name: 'QuizGames', component: QuizGames},
