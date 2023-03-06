@@ -11,9 +11,8 @@ class MyUser(AbstractUser):
     def to_dict(self):
         return {
             'username': self.username,
-            'password' : self.password,
             'email' : self.email,
-            'dateOfBirth' : self.date_of_birth,
+            'date_of_birth' : self.date_of_birth,
         }
 
 class Question(models.Model):

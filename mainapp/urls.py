@@ -21,4 +21,5 @@ urlpatterns = [
     path('get-user-completed', views.get_user_completed, name="Get User Completed"),
     path('remove-list-game', views.remove_list_game, name="Remove List Game"),
     path('get-game-data/<str:curr_title>', views.get_game_data, name='Get Game Data'),
+    path('user-profile', views.profile, name='Profile API')
 ]

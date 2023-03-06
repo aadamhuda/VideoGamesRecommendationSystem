@@ -3,7 +3,7 @@ from django.http import HttpRequest, HttpResponse, JsonResponse, HttpResponseRed
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import logout, authenticate, login
 from .forms import LoginForm, SignUpForm
-from .models import Question, Game, Profile, PlayList, DislikeList, CompletedList
+from .models import MyUser, Question, Game, Profile, PlayList, DislikeList, CompletedList
 from django.contrib import messages
 from django.contrib.auth import logout
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
@@ -412,7 +412,6 @@ def completed_game(request: HttpRequest) -> JsonResponse:
             })
         
 def get_user_completed(request: HttpRequest) -> JsonResponse:
-    success = False
     if request.method == 'GET':
         curr_user_id = json.loads(request.session.__getitem__("_auth_user_id"))
         completed_games = []
@@ -422,7 +421,6 @@ def get_user_completed(request: HttpRequest) -> JsonResponse:
                 [completed_games.append(game) for game in completed_list['completed_list_game'] if game not in completed_games ]
         return JsonResponse ({
                 'games_list' : completed_games,
-                'success' : success,
             })
     
 
@@ -439,8 +437,9 @@ def remove_list_game(request: HttpRequest) -> JsonResponse:
             game = PlayList.objects.filter(user_id = data['user_id'], play_list_game = data['game_to_remove'])
             
         game.delete()
+        success = True
         return JsonResponse ({
-                'success' : 'HI',
+                'success' : success,
             })
     
 def get_game_data(request: HttpRequest, curr_title: str) -> JsonResponse:
@@ -454,8 +453,42 @@ def get_game_data(request: HttpRequest, curr_title: str) -> JsonResponse:
         return JsonResponse({
             'games': curr_game_data  
             })
+@csrf_exempt
+def profile(request: HttpRequest) -> JsonResponse:
+    success = False
+    error_msg = ''
+    if request.method == 'GET':
+        curr_user_id = json.loads(request.session.__getitem__("_auth_user_id"))
+        user = {}
+        if (MyUser.objects.filter(id=curr_user_id).exists()):
+            user = MyUser.objects.get(id=curr_user_id).to_dict()
+        return JsonResponse({
+            'user': user  
+            })
+    elif request.method == 'PUT':
+        data = json.loads(request.body.decode('utf-8'))
+        if (MyUser.objects.filter(id=data['user_id']).exists()):
+            curr_user = MyUser.objects.get(id=data['user_id'])
+            if 'username' in data:
+                if ((data['username']).strip()):
+                    if(MyUser.objects.filter(username=data['username']).exists()):
+                        success = False
+                        error_msg = "This username already exists!"
+                    else:
+                        curr_user.username = data['username']
+            if 'email' in data:
+                if data['email'].strip():
+                    curr_user.email = data['email']
+            if 'date_of_birth' in data:
+                if data['date_of_birth'].strip():
+                    curr_user.date_of_birth = data['date_of_birth']
 
-
+            curr_user.save()
+            success = True
+        return JsonResponse({
+            'success': success,
+            'error_msg' : error_msg
+            })    
 
 def load_db(request: HttpRequest) -> HttpResponse:
     games = pd.read_csv('.\mainapp\static\metacritic_games_master.csv')
