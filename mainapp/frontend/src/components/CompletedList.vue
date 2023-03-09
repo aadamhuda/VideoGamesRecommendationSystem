@@ -16,7 +16,10 @@ export default defineComponent( {
             success: true,
             game_data: [],
             empty: true,
-            curr_game: ''
+            curr_game: '',
+            rawg_api_key: '8dace1a7448f4d0eb34054f6cdde584b',
+            game_choice: 999,
+            curr_game_img_src: [],
         }
     },
     methods : {
@@ -93,7 +96,27 @@ export default defineComponent( {
             let response = await fetch("http://localhost:8000/get-game-data/" + this.curr_game, {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
             let data = await response.json()
             console.log(data);
+            this.curr_game_img_src = []
+            this.get_game_img()
             this.game_data = data.games
+            
+        },
+        async get_game_img(){
+            let response = await fetch("https://api.rawg.io/api/games?key="+this.rawg_api_key+ "&search="+this.curr_game, {method: "GET"})
+            let data = await response.json()
+            console.log(data);
+            for (let i = 0; i < 15; i++) {
+                if (this.curr_game === data.results[i].name) {
+                    this.game_choice = i
+                    break
+                }
+                else{
+                    this.game_choice = 999
+                }
+            } 
+            if (this.game_choice!=999) {
+                this.curr_game_img_src = data.results[this.game_choice].short_screenshots
+            }
         }
     },
 } )
@@ -114,6 +137,7 @@ export default defineComponent( {
             <div class="col-8" v-if="!this.empty">
                 <h3>{{ this.game_data.title }}</h3>
                 <div class="container">
+                    <div v-if="this.curr_game_img_src.length != 0" ><img :src="this.curr_game_img_src[0].image" class=" img-thumbnail" id="gameimg"></div>
                     <div class="row">
                         <div class="col">
                             <p>Genre: {{ game_data.genre }}</p>

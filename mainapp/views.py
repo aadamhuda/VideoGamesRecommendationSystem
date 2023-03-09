@@ -10,11 +10,16 @@ from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.metrics.pairwise import linear_kernel
 import json
 import re
+import random
+from collections import Counter
 
 import pandas as pd
 import numpy as np
 
 def index(request: HttpRequest):
+    return render(request, "mainapp/index.html")
+
+def log_in(request: HttpRequest):
     if request.method =='POST':
         form = LoginForm(request.POST, request.FILES)
         user = authenticate(username=form['username'].data, password=form['password'].data)
@@ -24,10 +29,10 @@ def index(request: HttpRequest):
 
         else:
             messages.error(request,'username or password not correct')
-            return redirect('./')
+            return redirect('./login')
     else:
         form = LoginForm()
-        return render(request, "mainapp/index.html",{
+        return render(request, "mainapp/login.html",{
             'form' : form,
     })
 
@@ -469,6 +474,12 @@ def profile(request: HttpRequest) -> JsonResponse:
         data = json.loads(request.body.decode('utf-8'))
         if (MyUser.objects.filter(id=data['user_id']).exists()):
             curr_user = MyUser.objects.get(id=data['user_id'])
+            if 'first_name' in data:
+                if data['first_name'].strip():
+                    curr_user.first_name = data['first_name']
+            if 'surname' in data:
+                if data['surname'].strip():
+                    curr_user.last_name = data['surname']
             if 'username' in data:
                 if ((data['username']).strip()):
                     if(MyUser.objects.filter(username=data['username']).exists()):
@@ -489,6 +500,40 @@ def profile(request: HttpRequest) -> JsonResponse:
             'success': success,
             'error_msg' : error_msg
             })    
+    
+def home_page(request: HttpRequest) -> JsonResponse:
+    success = False
+    error_msg = ''
+    if request.method == 'GET':
+        curr_user_id = json.loads(request.session.__getitem__("_auth_user_id"))
+        top_genre = ''
+        play_list_overview = []
+        completed_list_overview = []
+        name = ''
+        if (MyUser.objects.filter(id=curr_user_id).exists()):
+            name = MyUser.objects.get(id=curr_user_id).first_name
+            if (Profile.objects.filter(user_id=curr_user_id).exists()):
+                player_profile = Profile.objects.get(user_id=curr_user_id)
+                genres = re.findall(r'\w+', player_profile.genre)
+                counter = Counter(genres)
+                top_genre = counter.most_common(1)[0][0]
+            play_list = pd.DataFrame.from_records(PlayList.objects.filter(user_id = curr_user_id).values())
+            completed_list = pd.DataFrame.from_records(CompletedList.objects.filter(user_id = curr_user_id).values())
+            play_list_items = []
+            completed_list_items = []
+            if not play_list.empty:
+                [play_list_items.append(game) for game in play_list['play_list_game'] if game not in play_list_items ]
+                play_list_overview = random.choices(play_list_items, k=5)
+            if not completed_list.empty:
+                [completed_list_items.append(game) for game in completed_list['completed_list_game'] if game not in completed_list_items ]
+                completed_list_overview = random.choices(completed_list_items, k=5)
+
+    return JsonResponse({
+        'play_overview': play_list_overview,
+        'completed_overview' : completed_list_overview, 
+        'top_genre' : top_genre,
+        'user_name' : name,
+        })    
 
 def load_db(request: HttpRequest) -> HttpResponse:
     games = pd.read_csv('.\mainapp\static\metacritic_games_master.csv')

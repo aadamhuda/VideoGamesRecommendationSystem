@@ -3,7 +3,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.index, name="Login"),
+    path('', views.index, name="Landing Page"),
+    path('login', views.log_in, name="Login"),
     path('logout', views.log_out, name="Logout"),
     path('sign-up', views.signup, name='SignUp'),
     path('ses-user', views.get_user, name="Get UserID"),
@@ -21,5 +22,6 @@ urlpatterns = [
     path('get-user-completed', views.get_user_completed, name="Get User Completed"),
     path('remove-list-game', views.remove_list_game, name="Remove List Game"),
     path('get-game-data/<str:curr_title>', views.get_game_data, name='Get Game Data'),
-    path('user-profile', views.profile, name='Profile API')
+    path('user-profile', views.profile, name='Profile API'),
+    path('home-page', views.home_page, name='Home Page')
 ]

@@ -17,6 +17,10 @@ export default defineComponent( {
             curr_game: '',
             game_data: [],
             empty: true,
+            loading: false,
+            rawg_api_key: '8dace1a7448f4d0eb34054f6cdde584b',
+            game_choice: 999,
+            curr_game_img_src: [],
         }
     },
     methods : {
@@ -27,15 +31,21 @@ export default defineComponent( {
             this.user_id = data.user_id
         },
         async get_recs() {
-            let response = await fetch("http://localhost:8000/user-recommendations", {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
-            let data = await response.json()
-            this.games_list = data.games_list
-            this.success = data.success
             this.empty = true
             this.curr_game = ''
+            this.games_list = []
+            this.loading = true
+            let response = await fetch("http://localhost:8000/user-recommendations", {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
+            let data = await response.json()
+            this.loading = false
+            this.games_list = data.games_list
+            this.success = data.success
         },
         async like_game(liked) {
-            this.get_id()
+            this.empty = true
+            this.curr_game = ''
+            this.games_list = []
+            this.loading = true
             let response = await fetch("http://localhost:8000/like-game", {
                 method: 'POST',
                 body: JSON.stringify({
@@ -49,7 +59,10 @@ export default defineComponent( {
 
         },
         async dislike_game(disliked) {
-            this.get_id()
+            this.empty = true
+            this.curr_game = ''
+            this.games_list = []
+            this.loading = true
             let response = await fetch("http://localhost:8000/dislike-game", {
                 method: 'POST',
                 body: JSON.stringify({
@@ -82,60 +95,91 @@ export default defineComponent( {
             let response = await fetch("http://localhost:8000/get-game-data/" + this.curr_game, {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
             let data = await response.json()
             console.log(data);
+            this.curr_game_img_src = []
+            this.get_game_img()
             this.game_data = data.games
+            
+        },
+        async get_game_img(){
+            let response = await fetch("https://api.rawg.io/api/games?key="+this.rawg_api_key+ "&search="+this.curr_game, {method: "GET"})
+            let data = await response.json()
+            console.log(data);
+            for (let i = 0; i < 15; i++) {
+                if (this.curr_game === data.results[i].name) {
+                    this.game_choice = i
+                    break
+                }
+                else{
+                    this.game_choice = 999
+                }
+            } 
+            if (this.game_choice!=999) {
+                this.curr_game_img_src = data.results[this.game_choice].short_screenshots
+            }
         }
     },
 } )
 
 </script>
 <template>
-    <div class="container">
+    <div class="h-100 w-100 d-flex align-items-center justify-content-center" v-if="this.loading">
+        <div class="spinner-border" role="status">
+            <span class="sr-only"></span>
+        </div>
+    </div>
+    <div v-else class="container">
+        <div v-if="this.games_list.length == 0">
+            <p class="lead">
+                <a class="btn btn-primary btn-lg" href="/Quiz" role="button">Take Quiz</a>
+            </p>
+        </div>
         <div class="row">
             <div class="col-4">
                 <table class="table table-hover">
                     <tbody>
                         <tr v-for="game in games_list" :key="game" @click="get_game_data(game)">
-                            <td class="align-middle" >{{ game }}</td>
+                            <td class="align-middle text-light lead" >{{ game }}</td>
                         </tr>
                     </tbody>
                 </table> 
             </div>
             <div class="col-8" v-if="!this.empty">
-                <h3>{{ this.game_data.title }}</h3>
-                <div class="container">
-                    <div class="row">
+                <div class="container lead text-light">
+                    <h3 >{{ this.game_data.title }}</h3>
+                    <div v-if="this.curr_game_img_src.length != 0"><img :src="this.curr_game_img_src[0].image" class=" img-thumbnail" id="gameimg"></div> 
+                    <div class="row ">
                         <div class="col">
-                            <p>Genre: {{ game_data.genre }}</p>
+                            <p><strong>Genre: </strong>{{ game_data.genre }}</p>
                         </div>
                         <div class="col">
-                            <p>Release Date: {{game_data.release_date }}</p>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col">
-                            <p>Developer: {{ game_data.developer }}</p>
-                        </div>
-                        <div class="col">
-                            <p>Number of Players: {{game_data.num_players }}</p>
+                            <p><strong>Release Date: </strong>{{game_data.release_date }}</p>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col">
-                            <p>Platforms: {{ game_data.platforms }}</p>
+                            <p><strong>Developer: </strong>{{ game_data.developer }}</p>
                         </div>
                         <div class="col">
-                            <p>Metascore: {{game_data.metascore }}</p>
+                            <p><strong>Number of Players: </strong>{{game_data.num_players }}</p>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col">
-                            <p>ESRB Rating: {{ game_data.esrb_rating }}</p>
+                            <p><strong>Platforms: </strong>{{ game_data.platforms }}</p>
                         </div>
                         <div class="col">
-                            <p>User Score: {{game_data.userscore }}</p>
+                            <p><strong>Metascore: </strong>{{game_data.metascore }}</p>
                         </div>
                     </div>
-                    <p>Summary:{{ game_data.summary }}</p>
+                    <div class="row">
+                        <div class="col">
+                            <p><strong>ESRB Rating: </strong>{{ game_data.esrb_rating }}</p>
+                        </div>
+                        <div class="col">
+                            <p><strong>User Score: </strong>{{game_data.userscore }}</p>
+                        </div>
+                    </div>
+                    <p class="lead text-light"><strong>Summary: </strong>{{ game_data.summary }}</p>
                 </div>
                 <form @submit.prevent="like_game(curr_game)"><button type="submit">like</button></form>
                 <form @submit.prevent="dislike_game(curr_game)"><button type="submit">dislike</button></form>

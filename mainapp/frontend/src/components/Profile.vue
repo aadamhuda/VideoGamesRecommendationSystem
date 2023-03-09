@@ -34,12 +34,14 @@ export default defineComponent( {
         async switch_mode(){
             this.edit = !this.edit
         },
-        async update_user(uname, email_address, dob) {
+        async update_user(fname, sname, uname, email_address, dob) {
             this.get_id()
             let response = await fetch("http://localhost:8000/user-profile", {
                 method: 'PUT',
                 body: JSON.stringify({
                     user_id: this.user_id,
+                    first_name: this.fname,
+                    surname: this.sname,
                     username: this.uname,
                     email: this.email_address,
                     date_of_birth: this.dob,
@@ -60,6 +62,12 @@ export default defineComponent( {
     <button @click="switch_mode()">Edit</button>
     <div v-if="this.edit">
         <form @submit.prevent="update_user(uname, email_address, dob)">
+            <label>First Name: </label>
+            <input class="form-control" type="text" name="firstname" :placeholder="this.user.first_name" v-model="fname">
+
+            <label>Surname: </label>
+            <input class="form-control" type="text" name="surname" :placeholder="this.user.last_name" v-model="sname">
+
             <label>Username: </label>
             <input class="form-control" type="text" name="username" :placeholder="this.user.username" v-model="uname">
 
@@ -73,6 +81,8 @@ export default defineComponent( {
         </form>
     </div>
     <div v-else>
+        <p>First Name: {{ user.first_name }}</p>
+        <p>Surname: {{ user.last_name }}</p>
         <p>Username: {{ user.username }}</p>
         <p>Email: {{ user.email }}</p>
         <p>Date Of Birth: {{ user.date_of_birth }}</p>
