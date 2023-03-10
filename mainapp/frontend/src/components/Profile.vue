@@ -15,14 +15,14 @@ export default defineComponent( {
     },
     methods : {
         async get_id() {
-            let response = await fetch("http://localhost:8000/ses-user", {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
+            let response = await fetch("./ses-user", {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
             let data = await response.json()
             console.log(data);
             this.user_id = data.user_id
         },
 
         async get_profile() {
-            let response = await fetch("http://localhost:8000/user-profile", {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
+            let response = await fetch("./user-profile", {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
             let data = await response.json()
             this.user = data.user
             console.log(data);
@@ -33,7 +33,7 @@ export default defineComponent( {
         },
         async update_user(fname, sname, uname, email_address, dob) {
             this.get_id()
-            let response = await fetch("http://localhost:8000/user-profile", {
+            let response = await fetch("./user-profile", {
                 method: 'PUT',
                 body: JSON.stringify({
                     user_id: this.user_id,

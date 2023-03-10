@@ -22,7 +22,7 @@ export default defineComponent( {
     },
     methods : {
         async get_id() {
-            let response = await fetch("http://localhost:8000/ses-user", {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
+            let response = await fetch("./ses-user", {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
             let data = await response.json()
             console.log(data);
             this.user_id = data.user_id
@@ -37,7 +37,7 @@ export default defineComponent( {
         },
         async like_game(liked) {
             this.get_id()
-            let response = await fetch("http://localhost:8000/like-game", {
+            let response = await fetch("./like-game", {
                 method: 'POST',
                 body: JSON.stringify({
                     user_id: this.user_id,
@@ -50,7 +50,7 @@ export default defineComponent( {
         },
         async complete_game(completed) {
             this.get_id()
-            let response = await fetch("http://localhost:8000/completed-game", {
+            let response = await fetch("./completed-game", {
                 method: 'POST',
                 body: JSON.stringify({
                     user_id: this.user_id,
@@ -64,7 +64,7 @@ export default defineComponent( {
         },
         async remove_game(game) {
             this.get_id()
-            let response = await fetch("http://localhost:8000/remove-list-game", {
+            let response = await fetch("./remove-list-game", {
                 method: 'DELETE',
                 body: JSON.stringify({
                     user_id: this.user_id,
@@ -78,7 +78,7 @@ export default defineComponent( {
 
         },
         async get_disliked_list() {
-            let response = await fetch("http://localhost:8000/get-user-disliked", {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
+            let response = await fetch("./get-user-disliked", {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
             let data = await response.json()
             this.games_list = data.games_list
             this.success = data.success
@@ -88,7 +88,7 @@ export default defineComponent( {
         async get_game_data(game){
             this.curr_game = game
             this.empty = false
-            let response = await fetch("http://localhost:8000/get-game-data/" + this.curr_game, {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
+            let response = await fetch("./get-game-data/" + this.curr_game, {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
             let data = await response.json()
             console.log(data);
             this.curr_game_img_src = []

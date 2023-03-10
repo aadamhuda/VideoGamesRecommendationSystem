@@ -22,13 +22,13 @@ export default defineComponent( {
     },
     methods : {
         async get_id() {
-            let response = await fetch("http://localhost:8000/ses-user", {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
+            let response = await fetch("./ses-user", {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
             let data = await response.json()
             console.log(data);
             this.user_id = data.user_id
         },
         async get_home_data() {
-            let response = await fetch("http://localhost:8000/home-page", {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
+            let response = await fetch("./home-page", {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
             let data = await response.json()
             console.log(data);
             this.top_genre = data.top_genre
@@ -39,7 +39,7 @@ export default defineComponent( {
         async get_recs() {
             this.games_list = []
             this.loading = true
-            let response = await fetch("http://localhost:8000/user-recommendations", {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
+            let response = await fetch("./user-recommendations", {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
             let data = await response.json()
             this.loading = false
             this.games_list = data.games_list

@@ -26,7 +26,7 @@
                     <router-link class="nav-link mx-1 text-light" to="/Profile">Profile</router-link>
                   </li>
                   <li class="nav-item lead">
-                    <a class="nav-link mx-1 text-light" href="http://localhost:8000/logout">Logout</a>
+                    <a class="nav-link mx-1 text-light" href="./logout">Logout</a>
                   </li>
                 </ul>
               </div>

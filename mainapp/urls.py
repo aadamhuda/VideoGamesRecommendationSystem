@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, re_path
 
 from . import views
 
@@ -23,5 +23,6 @@ urlpatterns = [
     path('remove-list-game', views.remove_list_game, name="Remove List Game"),
     path('get-game-data/<str:curr_title>', views.get_game_data, name='Get Game Data'),
     path('user-profile', views.profile, name='Profile API'),
-    path('home-page', views.home_page, name='Home Page')
+    path('home-page', views.home_page, name='Home Page'),
+    re_path(r'^.*', views.index, name='vue SPA'),
 ]

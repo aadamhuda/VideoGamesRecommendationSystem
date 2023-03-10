@@ -3,7 +3,7 @@ from django.http import HttpRequest, HttpResponse, JsonResponse, HttpResponseRed
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import logout, authenticate, login
 from .forms import LoginForm, SignUpForm
-from .models import MyUser, Question, Game, Profile, PlayList, DislikeList, CompletedList
+from .models import MyUser, Question, Game, Profile, PlayList, DislikeList, CompletedList, PageView
 from django.contrib import messages
 from django.contrib.auth import logout
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
@@ -17,7 +17,13 @@ import pandas as pd
 import numpy as np
 
 def index(request: HttpRequest):
+    hostname = os.getenv('HOSTNAME', 'unknown')
+    PageView.objects.create(hostname=hostname)
     return render(request, "mainapp/index.html")
+
+def health(request):
+    """Takes an request as a parameter and gives the count of pageview objects as reponse"""
+    return HttpResponse(PageView.objects.count())
 
 def log_in(request: HttpRequest):
     if request.method =='POST':
@@ -25,7 +31,7 @@ def log_in(request: HttpRequest):
         user = authenticate(username=form['username'].data, password=form['password'].data)
         if user:
             login(request, user)
-            return HttpResponseRedirect("http://localhost:5173/Home")
+            return render(request,"mainapp/spa/index.html")
 
         else:
             messages.error(request,'username or password not correct')
@@ -34,6 +40,7 @@ def log_in(request: HttpRequest):
         form = LoginForm()
         return render(request, "mainapp/login.html",{
             'form' : form,
+            'count': PageView.objects.count()
     })
 
 def signup(request: HttpRequest) -> HttpResponse:
