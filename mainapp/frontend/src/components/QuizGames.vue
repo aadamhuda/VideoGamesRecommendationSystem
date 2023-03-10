@@ -46,6 +46,7 @@ export default defineComponent( {
             })
             let data = await response.json()
             this.success = data.success
+            this.$router.push({path: '/Home'})
         },
         async more_games() {
             if ((this.curr_game_limit + 20) >= this.games_list.length){

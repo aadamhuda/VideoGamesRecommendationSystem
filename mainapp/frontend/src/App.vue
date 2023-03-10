@@ -1,4 +1,16 @@
-<script setup>
+<script>
+import { defineComponent } from 'vue'
+
+export default defineComponent( {
+    created() {
+        this.get_id()
+    },
+    methods : {
+        async get_id() {
+            this.$router.push({path: '/Home'})
+        },
+    },
+} )
 </script>
 <template>
   <div class="bg-image shadow-2-strong" style="background-image: url('https://wallpaperaccess.com/full/906751.jpg'); height: 100vh" id="bgimg">
