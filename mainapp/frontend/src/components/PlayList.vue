@@ -122,58 +122,75 @@ export default defineComponent( {
 
 </script>
 <template>
+    <div class="jumbotron">
+        <h1 class="display-4  text-light py-1 px-3">Play List</h1>
+        <div class=" text-light px-3">
+            <hr class="my-4 lead">
+        </div>
+    </div>
+    <br>
     <div class="container">
+        <div v-if="this.games_list.length == 0" class=" py-5 text-left text-light align-items-center justify-content-center text-center h-100 ">
+            <p class="lead text-light" >You do not seem to have any games on your Play List. Press the "Like" button in the Recommendations page to add items to this list.</p>
+            <p class="lead text-light mx-2">
+                <a class="btn btn-outline-light" href="/Recommendations" role="button">Recommendations Page</a>
+            </p>
+        </div>
         <div class="row">
             <div class="col-4">
-                <table class="table table-hover">
-                    <tbody>
-                        <tr v-for="game in games_list" :key="game" @click="get_game_data(game)">
-                            <td class="align-middle" >{{ game }}</td>
-                        </tr>
-                    </tbody>
-                </table> 
+                <div class="text-light overflow-auto" style="max-height: 70vh;">
+                    <table class="table table-hover">
+                        <tbody>
+                            <tr v-for="game in games_list" :key="game" @click="get_game_data(game)">
+                                <td class="align-middle text-light lead" >{{ game }}</td>
+                            </tr>
+                        </tbody>
+                    </table> 
+                </div>
             </div>
             <div class="col-8" v-if="!this.empty">
-                <h3>{{ this.game_data.title }}</h3>
-                <div class="container">
-                    <div v-if="this.curr_game_img_src.length != 0" ><img :src="this.curr_game_img_src[0].image" class=" img-thumbnail" id="gameimg"></div>
-                    <div class="row">
+                <div class="container lead text-light overflow-auto" style="max-height: 70vh;">
+                    <h3 >{{ this.game_data.title }}</h3>
+                    <div v-if="this.curr_game_img_src.length != 0"><img :src="this.curr_game_img_src[0].image" class=" img-thumbnail" id="gameimg" style="height: 25vh;"></div> 
+                    <div class="row ">
                         <div class="col">
-                            <p>Genre: {{ game_data.genre }}</p>
+                            <p><strong>Genre: </strong>{{ game_data.genre }}</p>
                         </div>
                         <div class="col">
-                            <p>Release Date: {{game_data.release_date }}</p>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col">
-                            <p>Developer: {{ game_data.developer }}</p>
-                        </div>
-                        <div class="col">
-                            <p>Number of Players: {{game_data.num_players }}</p>
+                            <p><strong>Release Date: </strong>{{game_data.release_date }}</p>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col">
-                            <p>Platforms: {{ game_data.platforms }}</p>
+                            <p><strong>Developer: </strong>{{ game_data.developer }}</p>
                         </div>
                         <div class="col">
-                            <p>Metascore: {{game_data.metascore }}</p>
+                            <p><strong>Number of Players: </strong>{{game_data.num_players }}</p>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col">
-                            <p>ESRB Rating: {{ game_data.esrb_rating }}</p>
+                            <p><strong>Platforms: </strong>{{ game_data.platforms }}</p>
                         </div>
                         <div class="col">
-                            <p>User Score: {{game_data.userscore }}</p>
+                            <p><strong>Metascore: </strong>{{game_data.metascore }}</p>
                         </div>
                     </div>
-                    <p>Summary:{{ game_data.summary }}</p>
+                    <div class="row">
+                        <div class="col">
+                            <p><strong>ESRB Rating: </strong>{{ game_data.esrb_rating }}</p>
+                        </div>
+                        <div class="col">
+                            <p><strong>User Score: </strong>{{game_data.userscore }}</p>
+                        </div>
+                    </div>
+                    <p class="lead text-light"><strong>Summary: </strong>{{ game_data.summary }}</p>
+                    <div class="btn-group"> 
+                        <button class="mx-1 btn btn-outline-success" @click="complete(curr_game)" type="submit">Complete</button>
+                        <button class="mx-1 btn btn-outline-warning" @click="dislike_game(curr_game)" type="submit">Dislike</button>
+                        <button class="mx-1 btn btn-outline-danger" @click="remove_game(curr_game)" type="submit">Remove</button>
+                    </div>
                 </div>
-                <form @submit.prevent="complete(curr_game)"><button type="submit">complete</button></form>
-                <form @submit.prevent="dislike(curr_game)"><button type="submit">dislike</button></form>
-                <form @submit.prevent="remove_game(curr_game)"><button type="submit">remove</button></form>
             </div>
         </div>
     </div>

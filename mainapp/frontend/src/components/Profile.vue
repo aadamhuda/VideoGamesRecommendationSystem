@@ -58,34 +58,45 @@ export default defineComponent( {
 
 </script>
 <template>
-    <router-link class="nav-link" to="/Quiz"><button>retake quiz</button></router-link>
-    <button @click="switch_mode()">Edit</button>
-    <div v-if="this.edit">
-        <form @submit.prevent="update_user(uname, email_address, dob)">
-            <label>First Name: </label>
-            <input class="form-control" type="text" name="firstname" :placeholder="this.user.first_name" v-model="fname">
-
-            <label>Surname: </label>
-            <input class="form-control" type="text" name="surname" :placeholder="this.user.last_name" v-model="sname">
-
-            <label>Username: </label>
-            <input class="form-control" type="text" name="username" :placeholder="this.user.username" v-model="uname">
-
-            <label>Email: </label>
-            <input class="form-control" type="email" name="email" :placeholder="this.user.email" v-model="email_address">
-
-            <label>Date Of Birth: </label>
-            <input class="form-control" type="text" name="date_of_birth" v-model="dob" :placeholder="this.user.date_of_birth" onfocus="(this.type='date')"><br>
-
-            <button class="btn btn-primary">Submit</button>
-        </form>
+    <div class="jumbotron">
+        <h1 class="display-4  text-light py-1 px-3">Your Profile</h1>
+        <div class=" text-light px-3">
+            <hr class="my-4 lead">
+        </div>
     </div>
-    <div v-else>
-        <p>First Name: {{ user.first_name }}</p>
-        <p>Surname: {{ user.last_name }}</p>
-        <p>Username: {{ user.username }}</p>
-        <p>Email: {{ user.email }}</p>
-        <p>Date Of Birth: {{ user.date_of_birth }}</p>
+    <br>
+    <div class="text-left lead text-light container d-flex align-items-center justify-content-center  h-50 ">
+        <div class="row w-50">
+            <div class="col ">
+                <div v-if="this.edit" >
+                    <form @submit.prevent="update_user(uname, email_address, dob)">
+                        <label class="form-label lead"><strong>First Name: </strong></label>
+                        <input class="form-control" type="text" name="firstname" :placeholder="this.user.first_name" v-model="fname">
+                        <label class="form-label lead"><strong>Surname: </strong></label>
+                        <input class="form-control" type="text" name="surname" :placeholder="this.user.last_name" v-model="sname">
+                        <label class="form-label lead"><strong>Username: </strong></label>
+                        <input class="form-control" type="text" name="username" :placeholder="this.user.username" v-model="uname">
+                        <label class="form-label lead"><strong>Email: </strong></label>
+                        <input class="form-control" type="email" name="email" :placeholder="this.user.email" v-model="email_address">
+                        <label class="form-label lead"><strong>Date Of Birth: </strong></label>
+                        <input class="form-control" type="text" name="date_of_birth" v-model="dob" :placeholder="this.user.date_of_birth" onfocus="(this.type='date')"><br>
+                        <button class="btn btn-outline-light">Submit</button>
+                    </form>
+                </div>
+                <div v-else>
+                    <p>First Name: {{ user.first_name }}</p>
+                    <p>Surname: {{ user.last_name }}</p>
+                    <p>Username: {{ user.username }}</p>
+                    <p>Email: {{ user.email }}</p>
+                    <p>Date Of Birth: {{ user.date_of_birth }}</p>
+                </div>
+            </div>
+            <div class="col d-flex align-items-center justify-content-center">
+                <router-link class="nav-link" to="/Quiz"><button class="btn btn-outline-light">Retake quiz</button></router-link>
+                <button @click="switch_mode()" class="btn btn-outline-light mx-2">Edit</button>
+            </div>
+        </div>
     </div>
+    
     
 </template>

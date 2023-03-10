@@ -1,8 +1,5 @@
 <script>
-import { objectToString } from '@vue/shared'
 import { defineComponent } from 'vue'
-import { useRoute } from 'vue-router'
-
 
 export default defineComponent( {
     created() {
@@ -14,7 +11,10 @@ export default defineComponent( {
             user_id: 0,
             games_list: [],
             success: true,
-            checked_names: []
+            checked_names: [],
+            curr_game_limit: 20,
+            max_games: false,
+            loading: false,
         }
     },
     methods : {
@@ -25,10 +25,14 @@ export default defineComponent( {
             this.user_id = data.user_id
         },
         async get_quiz_games() {
+            this.loading= true
             let response = await fetch("http://localhost:8000/get-quiz-games", {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
             let data = await response.json()
             this.games_list = data.games_list
+            this.loading = false
             this.success = data.success
+            this.curr_game_limit = 20
+            this.max_games = false
         },
         async saveProfile() {
             console.log("saved")
@@ -42,23 +46,51 @@ export default defineComponent( {
             })
             let data = await response.json()
             this.success = data.success
-
         },
+        async more_games() {
+            if ((this.curr_game_limit + 20) >= this.games_list.length){
+                this.max_games = true
+            }
+            else{
+                this.max_games = false
+                this.curr_game_limit += 20
+            }
+        }
     },
 } )
 
 </script>
 <template>
-    <router-link class="nav-link" to="/Quiz"><button>Back</button></router-link>
-    <p>{{ checked_names }}</p>
-    <form @submit.prevent="this.saveProfile()">
-        <button type="submit">Submit</button>
-        <div v-for="game in this.games_list">
-            <div>
-                <p>{{game}}</p>
-                <input v-model = "checked_names" type="checkbox" :id="game" :name="game" v-bind:value="game"><br>
+    <div class="jumbotron">
+        <h1 class="display-4  text-light py-1 px-3">Quiz</h1>
+        <div class=" text-light px-3">
+            <p class="lead">Select a few games from this list to complete your profile development. You can use the 'More Games' button to be given more game suggestions.</p>
+            <hr class="my-4 lead">
+        </div>
+    </div>
+    <div style=" max-height: 100vh;" class="py-5 text-left text-light  container align-items-center justify-content-center ">
+        <div class="d-flex align-items-center justify-content-center" v-if="this.loading">
+            <div class="spinner-border text-light" role="status">
+                <span class="sr-only"></span>
             </div>
         </div>
-        
-    </form>
+        <div class="row">
+            <div class="col-8">
+                <form @submit.prevent="this.saveProfile()" class="overflow-auto" style="height:60vh;">
+                    <button class="btn btn-outline-light m-2" type="submit">Submit</button>
+                    <div v-for="game in this.games_list.slice(0,this.curr_game_limit)">
+                        <div>
+                            <input class="form-check-input mx-1 my-2" v-model = "checked_names" type="checkbox" :id="game" :name="game" v-bind:value="game">
+                            <label class="form-check-label lead">{{game}}</label><br>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-4">
+                <router-link class="nav-link" to="/Quiz"><button class="btn btn-outline-light">Back</button></router-link>
+                <button class=" my-2 btn btn-outline-light" @click="more_games()" >More Games</button>
+                <p v-if="this.max_games" class="lead text-danger">There are no more games left to load.</p>
+            </div>
+        </div>
+    </div>
 </template>

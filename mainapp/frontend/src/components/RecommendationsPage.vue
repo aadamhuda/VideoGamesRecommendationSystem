@@ -122,31 +122,41 @@ export default defineComponent( {
 
 </script>
 <template>
-    <div class="h-100 w-100 d-flex align-items-center justify-content-center" v-if="this.loading">
-        <div class="spinner-border" role="status">
+    <div class="jumbotron">
+        <h1 class="display-4  text-light py-1 px-3">Recommendations</h1>
+        <div class=" text-light px-3">
+            <hr class="my-4 lead">
+        </div>
+    </div>
+    <br>
+    <div class="d-flex align-items-center justify-content-center" v-if="this.loading">
+        <div class="spinner-border text-light" role="status">
             <span class="sr-only"></span>
         </div>
     </div>
     <div v-else class="container">
-        <div v-if="this.games_list.length == 0">
-            <p class="lead">
-                <a class="btn btn-primary btn-lg" href="/Quiz" role="button">Take Quiz</a>
+        <div v-if="this.games_list.length == 0" class="  py-5 text-left text-light align-items-center justify-content-center text-center h-100 ">
+            <p class="lead text-light" >You do not seem to have a profile registered, please take the quiz to begin your profile! </p>
+            <p class="lead text-light mx-2">
+                <a class="btn btn-outline-light" href="/Quiz" role="button">Take Quiz</a>
             </p>
         </div>
         <div class="row">
             <div class="col-4">
-                <table class="table table-hover">
-                    <tbody>
-                        <tr v-for="game in games_list" :key="game" @click="get_game_data(game)">
-                            <td class="align-middle text-light lead" >{{ game }}</td>
-                        </tr>
-                    </tbody>
-                </table> 
+                <div class="text-light overflow-auto" style="max-height: 70vh;">
+                    <table class="table table-hover">
+                        <tbody>
+                            <tr v-for="game in games_list" :key="game" @click="get_game_data(game)">
+                                <td class="align-middle text-light lead" >{{ game }}</td>
+                            </tr>
+                        </tbody>
+                    </table> 
+                </div>
             </div>
             <div class="col-8" v-if="!this.empty">
-                <div class="container lead text-light">
+                <div class="container lead text-light overflow-auto" style="max-height: 70vh;">
                     <h3 >{{ this.game_data.title }}</h3>
-                    <div v-if="this.curr_game_img_src.length != 0"><img :src="this.curr_game_img_src[0].image" class=" img-thumbnail" id="gameimg"></div> 
+                    <div v-if="this.curr_game_img_src.length != 0"><img :src="this.curr_game_img_src[0].image" class=" img-thumbnail" id="gameimg" style="height: 25vh;"></div> 
                     <div class="row ">
                         <div class="col">
                             <p><strong>Genre: </strong>{{ game_data.genre }}</p>
@@ -180,10 +190,12 @@ export default defineComponent( {
                         </div>
                     </div>
                     <p class="lead text-light"><strong>Summary: </strong>{{ game_data.summary }}</p>
+                    <div class="btn-group"> 
+                        <button class="mx-1 btn btn-outline-success" @click="like_game(curr_game)" type="submit">Like</button>
+                        <button class="mx-1 btn btn-outline-warning" @click="complete_game(curr_game)" type="submit">Completed</button>
+                        <button class="mx-1 btn btn-outline-danger" @click="dislike_game(curr_game)" type="submit">Dislike</button>
+                    </div>
                 </div>
-                <form @submit.prevent="like_game(curr_game)"><button type="submit">like</button></form>
-                <form @submit.prevent="dislike_game(curr_game)"><button type="submit">dislike</button></form>
-                <form @submit.prevent="complete_game(curr_game)"><button type="submit">completed</button></form>
             </div>
         </div>
     </div>

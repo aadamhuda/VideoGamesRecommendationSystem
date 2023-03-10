@@ -77,8 +77,11 @@ def store_temp_profile(request: HttpRequest) -> JsonResponse:
     success = False
     if request.method == 'POST':
         data = json.loads(request.body.decode('utf-8'))
+        num_preference = 'All Players'
         if (len(data['picked_items']) > 0):
             temp_profile = []
+            if (data['picked_items'][0] is not None):
+                num_preference = data['picked_items'].pop(0)
             for picked in data['picked_items']:
                 if (picked != None):
                     success = True
@@ -88,13 +91,10 @@ def store_temp_profile(request: HttpRequest) -> JsonResponse:
                             temp_profile.append(item)
                 else:
                     success = False
-                    return JsonResponse({
-                        'success': success
-                    })
         if (success == True):
-            num_preference = temp_profile.pop(0)
             if(Profile.objects.filter(user_id=data['user_id']).exists()):
                 player_profile = Profile.objects.get(user_id=data['user_id'])
+                player_profile.keyword = ""
                 player_profile.genre = temp_profile
                 player_profile.num_players_preference = num_preference
                 player_profile.save()

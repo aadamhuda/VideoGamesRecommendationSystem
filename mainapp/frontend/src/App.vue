@@ -1,6 +1,5 @@
 <script setup>
 </script>
-
 <template>
   <div class="bg-image shadow-2-strong" style="background-image: url('https://wallpaperaccess.com/full/906751.jpg'); height: 100vh" id="bgimg">
       <div class="mask" style="background-color: rgba(0, 0, 0, 0.65); height: 100vh">
@@ -27,7 +26,7 @@
                     <router-link class="nav-link mx-1 text-light" to="/Profile">Profile</router-link>
                   </li>
                   <li class="nav-item lead">
-                    <a class="nav-link mx-1 text-light" href="http://localhost:8000/logout" >Logout</a>
+                    <a class="nav-link mx-1 text-light" href="http://localhost:8000/logout">Logout</a>
                   </li>
                 </ul>
               </div>
