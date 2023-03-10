@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 import os
 from pathlib import Path
+from . import database
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -52,16 +53,20 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
 CORS_ALLOWED_ORIGINS = [
 "http://localhost:5173",
 "http://127.0.0.1:5173",
+"https://vgrs-web-apps-ec20312.apps.d.comp-teach.qmul.ac.uk"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
 "http://localhost:5173",
 "http://127.0.0.1:5173",
+"https://vgrs-web-apps-ec20312.apps.d.comp-teach.qmul.ac.uk"
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
@@ -94,10 +99,7 @@ WSGI_APPLICATION = 'VGReccommendationSystem.wsgi.application'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': database.config()
 }
 
 
