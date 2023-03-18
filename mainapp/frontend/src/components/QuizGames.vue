@@ -15,6 +15,7 @@ export default defineComponent( {
             curr_game_limit: 20,
             max_games: false,
             loading: false,
+            submitted: false,
         }
     },
     methods : {
@@ -23,6 +24,7 @@ export default defineComponent( {
             let data = await response.json()
             console.log(data);
             this.user_id = data.user_id
+            this.submitted = false
         },
         async get_quiz_games() {
             this.loading= true
@@ -33,10 +35,12 @@ export default defineComponent( {
             this.success = data.success
             this.curr_game_limit = 20
             this.max_games = false
+            this.submitted = false
         },
         async saveProfile() {
             console.log("saved")
             this.get_id()
+            this.submitted = false
             let response = await fetch("./store-profile", {
                 method: 'POST',
                 body: JSON.stringify({
@@ -46,7 +50,7 @@ export default defineComponent( {
             })
             let data = await response.json()
             this.success = data.success
-            this.$router.push({path: '/Home'})
+            this.submitted = true
         },
         async more_games() {
             if ((this.curr_game_limit + 20) >= this.games_list.length){
@@ -91,6 +95,7 @@ export default defineComponent( {
                 <router-link class="nav-link" to="/Quiz"><button class="btn btn-outline-light">Back</button></router-link>
                 <button class=" my-2 btn btn-outline-light" @click="more_games()" >More Games</button>
                 <p v-if="this.max_games" class="lead text-danger">There are no more games left to load.</p>
+                <p v-if="this.submitted" class="lead text-success">Your profile was successfully saved.</p>
             </div>
         </div>
     </div>

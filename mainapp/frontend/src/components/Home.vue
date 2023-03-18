@@ -56,7 +56,7 @@ export default defineComponent( {
             <div v-if="this.top_genre == ''" class=" p-5 text-left text-light container d-flex align-items-center justify-content-center text-center h-100 ">
                 <p class="lead text-light" >You do not seem to have any genres registered, please take the quiz to begin your profile! </p>
                 <p class="lead text-light mx-2">
-                    <a class="btn btn-outline-light" href="/Quiz" role="button">Take Quiz</a>
+                    <router-link class="nav-link" to="/Quiz"><button class="btn btn-outline-light">Take Quiz</button></router-link>
                 </p>
             </div>
             <p v-else class="lead  text-light">Nice! Your favourite genre seems to be {{ top_genre }}. Happy gaming! </p>

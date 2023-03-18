@@ -129,7 +129,7 @@ export default defineComponent( {
         <div v-if="this.games_list.length == 0" class=" py-5 text-left text-light align-items-center justify-content-center text-center h-100 ">
             <p class="lead text-light" >You do not seem to have any games on your Dislike List. Press the "Dislike" button in the Recommendations page to add items to this list.</p>
             <p class="lead text-light mx-2">
-                <a class="btn btn-outline-light" href="/Recommendations" role="button">Recommendations Page</a>
+                <router-link class="nav-link" to="/Recommendations"><button class="btn btn-outline-light">Recommendations Page</button></router-link>
             </p>
         </div>
         <div class="row">

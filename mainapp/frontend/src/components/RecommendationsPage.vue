@@ -136,7 +136,7 @@ export default defineComponent( {
         <div v-if="this.games_list.length == 0" class="  py-5 text-left text-light align-items-center justify-content-center text-center h-100 ">
             <p class="lead text-light" >You do not seem to have a profile registered, please take the quiz to begin your profile! </p>
             <p class="lead text-light mx-2">
-                <a class="btn btn-outline-light" href="/Quiz" role="button">Take Quiz</a>
+                <router-link to="/Quiz"><button class="btn btn-outline-light">Take quiz</button></router-link>
             </p>
         </div>
         <div class="row">

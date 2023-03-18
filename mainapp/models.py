@@ -18,12 +18,12 @@ class MyUser(AbstractUser):
         }
 
 class Question(models.Model):
-    question_text = models.CharField(max_length=500)
-    strongly_agree = models.CharField(max_length=100)
-    agree = models.CharField(max_length=100)
-    neither = models.CharField(max_length=100)
-    disagree = models.CharField(max_length=100)
-    strongly_disagree = models.CharField(max_length=100)
+    question_text = models.TextField(max_length=500)
+    strongly_agree = models.TextField(max_length=500)
+    agree = models.TextField(max_length=500)
+    neither = models.TextField(max_length=500)
+    disagree = models.TextField(max_length=500)
+    strongly_disagree = models.TextField(max_length=500)
 
     def __str__(self):
         return self.question_text
@@ -58,9 +58,9 @@ class Question(models.Model):
         }
 
 class Profile(models.Model):
-    keyword = models.TextField()
-    genre = models.TextField()
-    num_players_preference = models.CharField(max_length=50)
+    keyword = models.TextField(max_length=30000)
+    genre = models.TextField(max_length=30000)
+    num_players_preference = models.TextField(max_length=500)
     user_id = models.IntegerField()
 
     def get_keyword(self):
@@ -85,7 +85,7 @@ class Profile(models.Model):
         }
     
 class PlayList(models.Model):
-    play_list_game = models.CharField(max_length=100)
+    play_list_game = models.TextField(max_length=500)
     user_id = models.IntegerField()
 
     def get_keyword(self):
@@ -102,7 +102,7 @@ class PlayList(models.Model):
         }
     
 class CompletedList(models.Model):
-    completed_list_game = models.CharField(max_length=100)
+    completed_list_game = models.TextField(max_length=500)
     user_id = models.IntegerField()
 
     def get_keyword(self):
@@ -119,7 +119,7 @@ class CompletedList(models.Model):
         }
     
 class DislikeList(models.Model):
-    dislike_list_game = models.CharField(max_length=100)
+    dislike_list_game = models.TextField(max_length=500)
     user_id = models.IntegerField()
 
     def get_keyword(self):
@@ -138,17 +138,17 @@ class DislikeList(models.Model):
 
 
 class Game(models.Model):
-    title = models.CharField(max_length=200)
-    release_date = models.CharField(max_length=50)
-    genre = models.CharField(max_length=200)
-    platforms = models.CharField(max_length=50)
-    developer = models.CharField(max_length=50)
-    esrb_rating = models.CharField(max_length=50)
-    esrbs = models.CharField(max_length=100)
+    title = models.TextField(max_length=500)
+    release_date = models.TextField(max_length=500)
+    genre = models.TextField(max_length=500)
+    platforms = models.TextField(max_length=500)
+    developer = models.TextField(max_length=500)
+    esrb_rating = models.TextField(max_length=500)
+    esrbs = models.TextField(max_length=500)
     metascore = models.IntegerField()
-    userscore = models.CharField(max_length=50)
-    num_players = models.CharField(max_length=50)
-    summary = models.TextField()
+    userscore = models.TextField(max_length=500)
+    num_players = models.TextField(max_length=500)
+    summary = models.TextField(max_length=10000)
 
     def __str__(self):
         return self.title
