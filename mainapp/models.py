@@ -149,6 +149,7 @@ class Game(models.Model):
     userscore = models.TextField(max_length=500)
     num_players = models.TextField(max_length=500)
     summary = models.TextField(max_length=10000)
+    keywords = models.TextField(max_length=10000)
 
     def __str__(self):
         return self.title

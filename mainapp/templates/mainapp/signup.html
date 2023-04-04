@@ -60,13 +60,13 @@
                     <button type="submit" class="btn btn-outline-light">Sign Up</button>
                 </form><br>
                 {% for message in messages %}
-                {% if Wrong %}
-                <div class="alert alert-danger">
+                {% if success %}
+                <div class="alert alert-success">
                     <a class="close" href="#" data-dismiss="alert"></a>
                     {{ message }}
                 </div>
                 {% else %}
-                <div class="alert alert-success">
+                <div class="alert alert-danger">
                     <a class="close" href="#" data-dismiss="alert"></a>
                     {{ message }}
                 </div>

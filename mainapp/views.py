@@ -1,5 +1,4 @@
 from django.shortcuts import render, redirect
-from django.templatetags.static import static
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import logout, authenticate, login
@@ -8,15 +7,13 @@ from .models import MyUser, Question, Game, Profile, PlayList, DislikeList, Comp
 from django.contrib import messages
 from django.contrib.auth import logout
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.metrics.pairwise import linear_kernel
+from collections import Counter
 import json
 import re
 import random
 import os
-from collections import Counter
-
 import pandas as pd
-import numpy as np
 
 def index(request: HttpRequest):
     hostname = os.getenv('HOSTNAME', 'unknown')
@@ -34,9 +31,8 @@ def log_in(request: HttpRequest):
         if user:
             login(request, user)
             return render(request,"mainapp/spa/index.html")
-
         else:
-            messages.error(request,'username or password not correct')
+            messages.error(request,'Incorrect username or password')
             return redirect('./login')
     else:
         form = LoginForm()
@@ -46,23 +42,19 @@ def log_in(request: HttpRequest):
     })
 
 def signup(request: HttpRequest) -> HttpResponse:
-
-    Wrong = False
-
+    success = False
     if (request.method == 'POST'):
         form = SignUpForm(request.POST)
         if form.is_valid():
             form.save()
             messages.success(request,'Your account has been created')
+            success = True
         else:
-            Wrong = True
             messages.error(request,'Invalid sign up details')
-
-
     form = SignUpForm()
     return render( request, "mainapp/signup.html" , { 
         'form' : form,
-        'Wrong' : Wrong,
+        'success' : success,
         } )
 
 def log_out(request):
@@ -128,6 +120,11 @@ def store_profile(request: HttpRequest) -> JsonResponse:
             keywords = []
             words = word_count()
             for game in data['games_choice']:
+                if(PlayList.objects.filter(user_id = data['user_id'], play_list_game = game).exists() == False):
+                    play_list_entry = PlayList.objects.create(
+                        play_list_game = game,
+                        user_id = data['user_id'],
+                    )
                 query = Game.objects.all().filter(title = game).values()
                 df = pd.DataFrame.from_records(query)
                 genres.extend((df['genre'].iloc[0]).split(", "))
@@ -157,14 +154,14 @@ def get_keywords(game_title):
     cleaned_keywords = []
     [cleaned_keywords.append(kw) for kw in keywords if kw not in cleaned_keywords ]
     profile_keywords = []
-    [profile_keywords.append(kw[0]) for kw in cleaned_keywords if kw[1]>1 and kw[1]<301]
+    [profile_keywords.append(kw[0]) for kw in cleaned_keywords if kw[1]>1 and kw[1]<101]
     return profile_keywords
 
 def word_count():
     games = pd.DataFrame.from_records(Game.objects.all().values())
     vec = CountVectorizer().fit(games['summary'])
-    bag_of_words = vec.transform(games['summary'])
-    sum_words = bag_of_words.sum(axis=0) 
+    words = vec.transform(games['summary'])
+    sum_words = words.sum(axis=0) 
     words_freq = [[word, sum_words[0, idx]] for word, idx in vec.vocabulary_.items()]
     words_freq =sorted(words_freq, key = lambda x: x[1], reverse=True)
     return words_freq
@@ -185,16 +182,13 @@ def get_quiz_games(request: HttpRequest) -> JsonResponse:
         if (Profile.objects.filter(user_id=data).exists()):
             profile = Profile.objects.get(user_id=data)
             games = filter_num_players(profile.get_num_players_preference())
-            #games = pd.DataFrame.from_records(Game.objects.all().values('title','genre'))
             user_profile = pd.DataFrame({
                 'title': ["user_profile_temp"],
                 'genre': [profile.get_genre()]
             })
             games = pd.concat([games, user_profile],ignore_index=True)
-            rec_games = generate_recomendations(games, 'genre')
+            rec_games = generate_recomendations(games,user_profile, 'genre')
             success =  True
-            print (rec_games)
-
         return JsonResponse ({
                 'games_list' : rec_games,
                 'success' : success,
@@ -207,33 +201,24 @@ def user_recommendations(request: HttpRequest) -> JsonResponse:
         rec_games = []
         if (Profile.objects.filter(user_id=curr_user_id).exists()):
             profile = Profile.objects.get(user_id=curr_user_id)
-            print('1')
             games = filter_num_players(profile.get_num_players_preference())
-
-            print('2')
             non_rec_list = generate_non_rec_list(curr_user_id)
             games = filter_list(non_rec_list)
-            print('3')
             user_profile = pd.DataFrame({
                 'title': ["user_profile_temp"],
                 'genre': [profile.get_genre()],
                 'summary': [profile.get_keyword()],
             })
             games = pd.concat([games, user_profile],ignore_index=True)
-            print(games.iloc[[len(games.index)-1]])
-            print('4')
-            rec_games_genre = generate_recomendations(games, 'genre')
-            
-            print('5')
-            rec_games_keywords = generate_recomendations(games, 'summary')
-            print('6')
+            rec_games_genre = generate_recomendations(games,user_profile, 'genre')
+            rec_games_keywords = generate_recomendations(games,user_profile, 'summary')
             success =  True
             recs = []
             recs.extend(rec_games_genre[:10])
             recs.extend(rec_games_keywords[:20])
-            print('7')
             [rec_games.append(game) for game in recs if game not in rec_games]
             rec_games = rec_games[:20]
+            random.shuffle(rec_games)
         return JsonResponse ({
                 'games_list' : rec_games,
             })
@@ -248,7 +233,6 @@ def generate_non_rec_list(curr_user_id):
         [non_rec_list.append(game) for game in dislike_list['dislike_list_game'] if game not in non_rec_list ]
     if not completed_list.empty:
         [non_rec_list.append(game) for game in completed_list['completed_list_game'] if game not in non_rec_list ]
-    print( non_rec_list)
     return non_rec_list
 
 def filter_list(filter_items):
@@ -281,37 +265,22 @@ def filter_num_players(num_players_preference):
         query = Game.objects.exclude(num_players__contains = '1 Player').exclude(num_players__contains = 'No Online Multiplayer').values()
     else:
         query = Game.objects.all().values()
-    
-    query = query.filter(metascore__gte = 70).values()
-
-    print(query.count())
+    query = query.filter(metascore__gte = 75).values()
     return pd.DataFrame.from_records(query)
 
 
-def generate_recomendations(games, field):
-        print(1)
+def generate_recomendations(games, profile, field):
         tfidf = TfidfVectorizer(stop_words='english')
-        print(2)
         games[field] = games[field].fillna('')
-        print(3)
-        overview_matrix = tfidf.fit_transform(games[field])
-        print(4)
-        #print(overview_matrix.shape)
-        similarity_matrix = cosine_similarity(overview_matrix,overview_matrix)
-        print(5)
-        mapping = pd.Series(games.index, index = games['title'])
-        print(6)
+        tfidf_matrix = tfidf.fit_transform(games[field])
+        user_profile_tfidf = tfidf.transform(profile[field])
+        similarity_matrix = linear_kernel(user_profile_tfidf, tfidf_matrix)
+        mapping = pd.Series(similarity_matrix[0], index = games['title'])
         user_index = mapping["user_profile_temp"]
-        print(7)
-        similarity_score = list(enumerate(similarity_matrix[user_index]))
-        print(8)
+        similarity_score = list(enumerate(similarity_matrix[0]))
         similarity_score = sorted(similarity_score, key=lambda x: x[1], reverse=True)
-        print(9)
         similarity_score = similarity_score[1:200]
-        print(10)
         games_index = [i[0] for i in similarity_score]
-        print(11)
-        #print(games['title'].iloc[games_index])
         rec_games = []
         [rec_games.append(game) for game in games['title'].iloc[games_index] if game not in rec_games ]
         if 'user_profile_temp' in rec_games:
@@ -348,6 +317,8 @@ def add_genres(game_title, curr_user_id):
         genres = genres.replace("[", '')
         genres = genres.replace("]", '')
         genres = genres.split(",")
+        for genre in genres:
+            genre = genre.lstrip()
         query = Game.objects.all().filter(title = game_title).values()
         df = pd.DataFrame.from_records(query)
         genres.extend((df['genre'].iloc[0]).split(", "))
@@ -525,7 +496,6 @@ def profile(request: HttpRequest) -> JsonResponse:
             if 'date_of_birth' in data:
                 if data['date_of_birth'].strip():
                     curr_user.date_of_birth = data['date_of_birth']
-
             curr_user.save()
             success = True
         return JsonResponse({
@@ -534,8 +504,6 @@ def profile(request: HttpRequest) -> JsonResponse:
             })    
     
 def home_page(request: HttpRequest) -> JsonResponse:
-    success = False
-    error_msg = ''
     if request.method == 'GET':
         curr_user_id = json.loads(request.session.__getitem__("_auth_user_id"))
         top_genre = ''
@@ -544,18 +512,22 @@ def home_page(request: HttpRequest) -> JsonResponse:
         name = ''
         if (MyUser.objects.filter(id=curr_user_id).exists()):
             name = MyUser.objects.get(id=curr_user_id).first_name
+            #extracting genres from profile
             if (Profile.objects.filter(user_id=curr_user_id).exists()):
                 player_profile = Profile.objects.get(user_id=curr_user_id)
                 genres = player_profile.genre.replace("'", '')
                 genres = genres.replace("[", '')
                 genres = genres.replace("]", '')
                 genres = genres.split(",")
+                #return the top genre from the list of genres
                 counter = Counter(genres)
                 top_genre = counter.most_common(1)[0][0]
+            #retrieve all data for current user in play list and completed list
             play_list = pd.DataFrame.from_records(PlayList.objects.filter(user_id = curr_user_id).values())
             completed_list = pd.DataFrame.from_records(CompletedList.objects.filter(user_id = curr_user_id).values())
             play_list_items = []
             completed_list_items = []
+            #store up to 5 random games to be displayed on the home page from each list
             if not play_list.empty:
                 [play_list_items.append(game) for game in play_list['play_list_game'] if game not in play_list_items ]
                 if (len(play_list_items) < 5):
@@ -564,13 +536,10 @@ def home_page(request: HttpRequest) -> JsonResponse:
                     play_list_overview = random.sample(play_list_items, 5)
             if not completed_list.empty:
                 [completed_list_items.append(game) for game in completed_list['completed_list_game'] if game not in completed_list_items ]
-                if (len(play_list_items) < 5):
+                if (len(completed_list_items) < 5):
                     completed_list_overview = random.sample(completed_list_items, len(completed_list_items))
-
                 else:
                     completed_list_overview = random.sample(completed_list_items, 5)
-
-                
     return JsonResponse({
         'play_overview': play_list_overview,
         'completed_overview' : completed_list_overview, 
