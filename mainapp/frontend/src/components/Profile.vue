@@ -17,7 +17,6 @@ export default defineComponent( {
         async get_id() {
             let response = await fetch("./ses-user", {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
             let data = await response.json()
-            console.log(data);
             this.user_id = data.user_id
         },
 
@@ -25,7 +24,6 @@ export default defineComponent( {
             let response = await fetch("./user-profile", {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
             let data = await response.json()
             this.user = data.user
-            console.log(data);
         },
 
         async switch_mode(){

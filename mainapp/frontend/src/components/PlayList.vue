@@ -24,7 +24,6 @@ export default defineComponent( {
         async get_id() {
             let response = await fetch("./ses-user", {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
             let data = await response.json()
-            console.log(data);
             this.user_id = data.user_id
         },
         async complete(game) {
@@ -92,7 +91,6 @@ export default defineComponent( {
             this.empty = false
             let response = await fetch("./get-game-data/" + this.curr_game, {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
             let data = await response.json()
-            console.log(data);
             this.curr_game_img_src = []
             this.get_game_img()
             this.game_data = data.games
@@ -101,7 +99,6 @@ export default defineComponent( {
         async get_game_img(){
             let response = await fetch("https://api.rawg.io/api/games?key="+this.rawg_api_key+ "&search="+this.curr_game, {method: "GET"})
             let data = await response.json()
-            console.log(data);
             for (let i = 0; i < 15; i++) {
                 if (this.curr_game === data.results[i].name) {
                     this.game_choice = i

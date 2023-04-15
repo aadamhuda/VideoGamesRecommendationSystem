@@ -24,13 +24,11 @@ export default defineComponent( {
         async get_id() {
             let response = await fetch("./ses-user", {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
             let data = await response.json()
-            console.log(data);
             this.user_id = data.user_id
         },
         async get_home_data() {
             let response = await fetch("./home-page", {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
             let data = await response.json()
-            console.log(data);
             this.top_genre = data.top_genre
             this.completed_overview = data.completed_overview
             this.play_overview = data.play_overview
