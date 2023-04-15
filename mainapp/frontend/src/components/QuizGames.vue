@@ -16,13 +16,13 @@ export default defineComponent( {
             max_games: false,
             loading: false,
             submitted: false,
+            saving: false
         }
     },
     methods : {
         async get_id() {
             let response = await fetch("./ses-user", {method: "GET", credentials: "include", mode: "cors", referrerPolicy: "no-referrer" })
             let data = await response.json()
-            console.log(data);
             this.user_id = data.user_id
             this.submitted = false
         },
@@ -38,9 +38,9 @@ export default defineComponent( {
             this.submitted = false
         },
         async saveProfile() {
-            console.log("saved")
             this.get_id()
             this.submitted = false
+            this.saving = true
             let response = await fetch("./store-profile", {
                 method: 'POST',
                 body: JSON.stringify({
@@ -50,6 +50,7 @@ export default defineComponent( {
             })
             let data = await response.json()
             this.success = data.success
+            this.saving = false
             this.submitted = true
         },
         async more_games() {
@@ -82,19 +83,24 @@ export default defineComponent( {
         <div class="row">
             <div class="col-8">
                 <form @submit.prevent="this.saveProfile()" class="overflow-auto" style="height:60vh;">
-                    <button class="btn btn-outline-light m-2" type="submit">Submit</button>
                     <div v-for="game in this.games_list.slice(0,this.curr_game_limit)">
                         <div>
                             <input class="form-check-input mx-1 my-2" v-model = "checked_names" type="checkbox" :id="game" :name="game" v-bind:value="game">
                             <label class="form-check-label lead">{{game}}</label><br>
                         </div>
                     </div>
+                    <button class="btn btn-outline-light m-2" type="submit">Submit</button>
                 </form>
             </div>
             <div class="col-4">
                 <router-link class="nav-link" to="/Quiz"><button class="btn btn-outline-light">Back</button></router-link>
                 <button class=" my-2 btn btn-outline-light" @click="more_games()" >More Games</button>
                 <p v-if="this.max_games" class="lead text-danger">There are no more games left to load.</p>
+                <div class="d-flex align-items-center" v-if="this.saving">
+                    <div class="spinner-border text-light" role="status">
+                        <span class="sr-only"></span>
+                    </div>
+                </div>
                 <p v-if="this.submitted" class="lead text-success">Your profile was successfully saved.</p>
             </div>
         </div>

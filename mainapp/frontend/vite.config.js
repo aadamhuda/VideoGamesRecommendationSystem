@@ -15,7 +15,7 @@ export default defineConfig(({ command, mode }) => {
                 emptyOutDir: true,
                 outDir: '../static/mainapp/vue',
             },
-            base: (mode == 'production') ? 'http://localhost:5173/' : '../static/mainapp/vue/',
+            base: (mode == 'production') ? '../../../static/mainapp/vue' : '../static/mainapp/vue/',
         }
     }
 )
