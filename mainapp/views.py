@@ -159,12 +159,12 @@ def get_keywords(game_title):
 
 def word_count():
     games = pd.DataFrame.from_records(Game.objects.all().values())
-    vec = CountVectorizer().fit(games['summary'])
-    words = vec.transform(games['summary'])
-    sum_words = words.sum(axis=0) 
-    words_freq = [[word, sum_words[0, idx]] for word, idx in vec.vocabulary_.items()]
-    words_freq =sorted(words_freq, key = lambda x: x[1], reverse=True)
-    return words_freq
+    count_vectoriser = CountVectorizer().fit(games['summary'])
+    words = count_vectoriser.transform(games['summary'])
+    count = words.sum(axis=0) 
+    frequency = [[word, count[0, i]] for word, i in count_vectoriser.vocabulary_.items()]
+    frequency =sorted(frequency, key = lambda x: x[1], reverse=True)
+    return frequency
 
 def return_keywords(summary, words):
     keyword_quantities = []
