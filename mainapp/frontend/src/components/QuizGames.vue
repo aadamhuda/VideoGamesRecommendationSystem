@@ -70,7 +70,7 @@ export default defineComponent( {
     <div class="jumbotron">
         <h1 class="display-4  text-light py-1 px-3">Quiz</h1>
         <div class=" text-light px-3">
-            <p class="lead">Select a few games from this list to complete your profile development. You can use the 'More Games' button to be given more game suggestions.</p>
+            <p class="lead">Select up to 5 games you like or are interested in from this list to complete your profile development. You can use the 'More Games' button to be given more game suggestions.</p>
             <hr class="my-4 lead">
         </div>
     </div>
@@ -85,7 +85,7 @@ export default defineComponent( {
                 <form @submit.prevent="this.saveProfile()" class="overflow-auto" style="height:60vh;">
                     <div v-for="game in this.games_list.slice(0,this.curr_game_limit)">
                         <div>
-                            <input class="form-check-input mx-1 my-2" v-model = "checked_names" type="checkbox" :id="game" :name="game" v-bind:value="game">
+                            <input class="form-check-input mx-1 my-2" v-model = "checked_names" type="checkbox" :id="game" :name="game" v-bind:value="game" :disabled="checked_names.length > 4 && checked_names.indexOf(game) === -1">
                             <label class="form-check-label lead">{{game}}</label><br>
                         </div>
                     </div>

@@ -16,6 +16,7 @@ import os
 import pandas as pd
 
 def index(request: HttpRequest):
+    """Loads index.html template, used on first load"""
     hostname = os.getenv('HOSTNAME', 'unknown')
     PageView.objects.create(hostname=hostname)
     return render(request, "mainapp/index.html")
@@ -25,13 +26,16 @@ def health(request):
     return HttpResponse(PageView.objects.count())
 
 def log_in(request: HttpRequest):
+    """Logs in the user using the form from login.html and creates a session, if credentials are correct"""
     if request.method =='POST':
         form = LoginForm(request.POST, request.FILES)
         user = authenticate(username=form['username'].data, password=form['password'].data)
         if user:
+            #logs in user if account exists
             login(request, user)
             return render(request,"mainapp/spa/index.html")
         else:
+            #otherwise redirects back to log in page and throws error
             messages.error(request,'Incorrect username or password')
             return redirect('./login')
     else:
@@ -42,6 +46,7 @@ def log_in(request: HttpRequest):
     })
 
 def signup(request: HttpRequest) -> HttpResponse:
+    """Allows the user to create an account"""
     success = False
     if (request.method == 'POST'):
         form = SignUpForm(request.POST)
@@ -58,16 +63,19 @@ def signup(request: HttpRequest) -> HttpResponse:
         } )
 
 def log_out(request):
+    """Uses django logout function to destroy user session"""
     logout(request)
     return redirect('./')
 
 def get_user(request: HttpRequest) -> JsonResponse:
+    """Returns the session variable _auth_user_id, which stores the current user id"""
     if request.method=='GET':
         return JsonResponse ( {
             'user_id' : request.session.__getitem__("_auth_user_id")
         }, safe=False)
-#---------------------------------------quiz------------------------------------------------
+
 def get_questions(request: HttpRequest) -> JsonResponse:
+    """Returns the quiz questions from the table"""
     if request.method == 'GET':
         return JsonResponse (
             [i.to_dict() for i in Question.objects.all()]
@@ -75,13 +83,16 @@ def get_questions(request: HttpRequest) -> JsonResponse:
 
 @csrf_exempt
 def store_temp_profile(request: HttpRequest) -> JsonResponse:
+    """Stores a temporary profile for the user consisting of genres
+    and number of players preference"""
     success = False
     if request.method == 'POST':
         data = json.loads(request.body.decode('utf-8'))
-        num_preference = 'All Players'
+        num_preference = 'All Players'#preference is defaulted to "All Players"
         if (len(data['picked_items']) > 0):
             temp_profile = []
             if (data['picked_items'][0] is not None):
+                #first element in list will always be the num_preference
                 num_preference = data['picked_items'].pop(0)
             for picked in data['picked_items']:
                 if (picked != None):
@@ -89,17 +100,20 @@ def store_temp_profile(request: HttpRequest) -> JsonResponse:
                     sub_list = picked.split("; ")
                     for item in sub_list:
                         if (item != 'None'):
+                            #adds all the genres from the question response to temp profile
                             temp_profile.append(item)
                 else:
                     success = False
         if (success == True):
             if(Profile.objects.filter(user_id=data['user_id']).exists()):
+                #if profile object exists, then updates object
                 player_profile = Profile.objects.get(user_id=data['user_id'])
                 player_profile.keyword = ""
                 player_profile.genre = temp_profile
                 player_profile.num_players_preference = num_preference
                 player_profile.save()
             else:
+                 #if a profile object doesnt exist, then creates new profile object
                  player_profile = Profile.objects.create(
                     keyword = "",
                     genre = temp_profile,
@@ -112,10 +126,11 @@ def store_temp_profile(request: HttpRequest) -> JsonResponse:
     
 @csrf_exempt
 def store_profile(request: HttpRequest) -> JsonResponse:
+    """Stores a full profile """
     success = False
     if request.method == 'POST':
         data = json.loads(request.body.decode('utf-8'))
-        if (len(data['games_choice']) >0):
+        if (len(data['games_choice'])>0):
             genres = []
             keywords = []
             words = word_count()
@@ -145,6 +160,7 @@ def store_profile(request: HttpRequest) -> JsonResponse:
             return JsonResponse({
                 'success': success
             })
+        
 def get_keywords(game_title):
     words = word_count()
     query = Game.objects.all().filter(title = game_title).values()
@@ -272,17 +288,15 @@ def filter_num_players(num_players_preference):
 def generate_recomendations(games, profile, field):
         tfidf = TfidfVectorizer(stop_words='english')
         games[field] = games[field].fillna('')
-        tfidf_matrix = tfidf.fit_transform(games[field])
+        games_tfidf = tfidf.fit_transform(games[field])
         user_profile_tfidf = tfidf.transform(profile[field])
-        similarity_matrix = linear_kernel(user_profile_tfidf, tfidf_matrix)
-        mapping = pd.Series(similarity_matrix[0], index = games['title'])
-        user_index = mapping["user_profile_temp"]
-        similarity_score = list(enumerate(similarity_matrix[0]))
-        similarity_score = sorted(similarity_score, key=lambda x: x[1], reverse=True)
-        similarity_score = similarity_score[1:200]
-        games_index = [i[0] for i in similarity_score]
+        cosine_similarity = linear_kernel(user_profile_tfidf, games_tfidf)
+        similarity = list(enumerate(cosine_similarity[0]))
+        similarity = sorted(similarity, key=lambda x: x[1], reverse=True)
+        similarity = similarity[1:200]
+        recs_index = [i[0] for i in similarity]
         rec_games = []
-        [rec_games.append(game) for game in games['title'].iloc[games_index] if game not in rec_games ]
+        [rec_games.append(game) for game in games['title'].iloc[recs_index] if game not in rec_games ]
         if 'user_profile_temp' in rec_games:
             rec_games.remove('user_profile_temp')
         return rec_games

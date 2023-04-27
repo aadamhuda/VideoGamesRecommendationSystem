@@ -1,45 +1,43 @@
-from importlib import import_module
-from django.test import TestCase, RequestFactory
-from django.test import Client
-from .models import MyUser, Profile,PlayList,DislikeList,CompletedList
+from django.contrib.auth import get_user
+from urllib.parse import urlencode
+from django.test import TestCase, RequestFactory, Client
+from .models import MyUser, Profile, PlayList, DislikeList, CompletedList
 from django.urls import reverse
-from django.conf import settings
 from . import views
+from .forms import LoginForm
 
 # Create your tests here.
 class ViewTests(TestCase):
-
     def setUp(self):
-        test_username = 'testacc'
-        test_password = 'Testing123'
-        test_email = 'test@testmail.com'
-        client = Client()
-        MyUser.objects.create(username = test_username, email = test_email, password = test_password)
-        self.client.get(reverse('load DB'))
+        self.client = Client()
         self.factory = RequestFactory()
-
+        self.test_username = 'testacc'
+        self.test_password = 'Testing123'
+        self.test_email = 'test@testmail.com'
+        user = MyUser.objects.create(username = self.test_username)
+        user.set_password(self.test_password)
+        user.save()
+        self.client.get(reverse('load DB'))
 
     def test_log_in(self):
-        test_username = 'testacc'
-        test_password = 'Testing123'
-        test_email = 'test@testmail.com'
-        client = Client()
-        response = client.post(reverse('Login'), {'username':test_username, 'password':test_password})
-        self.assertEqual(response.status_code,302)
+        client = self.client
+        self.assertFalse(get_user(client).is_authenticated)
+        response = client.post(reverse('Login'), {'username':self.test_username, 'password':self.test_password})
+        self.assertEqual(response.status_code,200)
+        self.assertTrue(get_user(client).is_authenticated)
 
     def test_sign_up(self):
         test_fname = 'test'
         test_lname = 'account'
-        test_username = 'testacc'
-        test_password = 'Testing123'
-        test_email = 'test@testmail.com'
         test_dob = '1970-01-01'
-        client = Client()
-        response = client.post(reverse('SignUp'), {'first_name':test_fname,'last_name':test_lname,'username':test_username,'email':test_email, 'date_of_birth':test_dob, 'password1':test_password,'password2':test_password})
+        test_username = 'testacc2'
+        client = self.client
+        count = MyUser.objects.count()
+        response = client.post(reverse('SignUp'), {'first_name':test_fname,'last_name':test_lname,'username':test_username,'email':self.test_email, 'date_of_birth':test_dob, 'password1':self.test_password,'password2':self.test_password})
         self.assertEqual(response.status_code,200)
     
     def test_temp_profile(self):
-        client = Client()
+        client = self.client
         test_items = ["Coop","Role-Playing; Action RPG; Action","Puzzle; Turn-Based","Action Adventure; Open-World"]
         test_id = MyUser.objects.all()[0].id
         response = client.post(reverse('Store Temp Profile'), {"user_id":test_id,"picked_items":test_items},content_type="application/json")
@@ -47,7 +45,7 @@ class ViewTests(TestCase):
         self.assertEqual(Profile.objects.count(),1)
 
     def test_store_profile(self):
-        client = Client()
+        client = self.client
         test_items = ["The Legend of Zelda: Breath of the Wild","Horizon Forbidden West"]
         test_id = MyUser.objects.all()[0].id
         response = client.post(reverse('Store Profile'), {'user_id':test_id,'games_choice':test_items},content_type="application/json")
@@ -65,7 +63,7 @@ class ViewTests(TestCase):
 
 
     def test_get_questions(self):
-        client = Client()
+        client = self.client
         response = client.get(reverse('Get Questions'))
         self.assertEqual(response.status_code,200)
 
@@ -80,7 +78,7 @@ class ViewTests(TestCase):
         self.assertEqual(response.status_code,200)
         
     def test_like_game(self):
-        client = Client()
+        client = self.client
         test_items = "The Legend of Zelda: Breath of the Wild"
         test_id = MyUser.objects.all()[0].id
         response = client.post(reverse('Like Game'), {'user_id':test_id,'liked_game':test_items},content_type="application/json")
@@ -88,7 +86,7 @@ class ViewTests(TestCase):
         self.assertEqual(PlayList.objects.count(),1)
     
     def test_complete_game(self):
-        client = Client()
+        client = self.client
         test_items = "The Legend of Zelda: Breath of the Wild"
         test_id = MyUser.objects.all()[0].id
         response = client.post(reverse('Completed Game'), {'user_id':test_id,'completed_game':test_items},content_type="application/json")
@@ -96,7 +94,7 @@ class ViewTests(TestCase):
         self.assertEqual(CompletedList.objects.count(),1)
 
     def test_dislike_game(self):
-        client = Client()
+        client = self.client
         test_items = "Resident Evil 4: Wii Edition"
         test_id = MyUser.objects.all()[0].id
         response = client.post(reverse('Dislike Game'), {'user_id':test_id,'disliked_game':test_items},content_type="application/json")
@@ -104,7 +102,7 @@ class ViewTests(TestCase):
         self.assertEqual(DislikeList.objects.count(),1)
 
     def test_remove_game(self):
-        client = Client()
+        client = self.client
         test_items = "The Legend of Zelda: Breath of the Wild"
         test_id = MyUser.objects.all()[0].id
         response = client.post(reverse('Dislike Game'), {'user_id':test_id,'disliked_game':test_items},content_type="application/json")
@@ -120,7 +118,7 @@ class ViewTests(TestCase):
         self.assertEqual(response.status_code,200)
 
     def test_edit_profile(self):
-        client = Client()
+        client = self.client
         test_name = "testuser123"
         test_id = MyUser.objects.all()[0].id
         response = client.put(reverse('Profile API'), {'user_id':test_id,'first_name':test_name},content_type="application/json")
