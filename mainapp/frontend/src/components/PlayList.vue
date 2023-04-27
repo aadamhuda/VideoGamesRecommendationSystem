@@ -182,7 +182,7 @@ export default defineComponent( {
                     <p class="lead text-light"><strong>Summary: </strong>{{ game_data.summary }}</p>
                     <div class="btn-group"> 
                         <button class="mx-1 btn btn-outline-success" @click="complete(curr_game)" type="submit">Complete</button>
-                        <button class="mx-1 btn btn-outline-warning" @click="dislike_game(curr_game)" type="submit">Dislike</button>
+                        <button class="mx-1 btn btn-outline-warning" @click="dislike(curr_game)" type="submit">Dislike</button>
                         <button class="mx-1 btn btn-outline-danger" @click="remove_game(curr_game)" type="submit">Remove</button>
                     </div>
                 </div>
