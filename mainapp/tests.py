@@ -4,8 +4,6 @@ from django.test import TestCase, RequestFactory, Client
 from .models import MyUser, Profile, PlayList, DislikeList, CompletedList
 from django.urls import reverse
 from . import views
-from .forms import LoginForm
-
 class ViewTests(TestCase):
     def setUp(self):
         self.client = Client()
