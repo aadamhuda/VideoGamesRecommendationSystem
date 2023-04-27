@@ -126,29 +126,36 @@ def store_temp_profile(request: HttpRequest) -> JsonResponse:
     
 @csrf_exempt
 def store_profile(request: HttpRequest) -> JsonResponse:
-    """Stores a full profile """
+    """Stores a full profile using the games the user has chosen from the quiz """
     success = False
     if request.method == 'POST':
         data = json.loads(request.body.decode('utf-8'))
         if (len(data['games_choice'])>0):
             genres = []
             keywords = []
+            #returns word count of all the words
             words = word_count()
             for game in data['games_choice']:
                 if(PlayList.objects.filter(user_id = data['user_id'], play_list_game = game).exists() == False):
+                    #adds selected game to play list to ensure it is not recommended again
                     play_list_entry = PlayList.objects.create(
                         play_list_game = game,
                         user_id = data['user_id'],
                     )
                 query = Game.objects.all().filter(title = game).values()
                 df = pd.DataFrame.from_records(query)
+                #adds all genres from all the games they chose to a list
                 genres.extend((df['genre'].iloc[0]).split(", "))
+                #concatenates all keywords to a list with their counts
                 keywords.extend(return_keywords(re.findall(r'\w+', df['summary'].iloc[0]), words))
+            #sorts and removes any duplicates
             keywords.sort(key = lambda x: x[1])
             cleaned_keywords = []
             [cleaned_keywords.append(kw) for kw in keywords if kw not in cleaned_keywords ]
             profile_keywords = []
+            #takes keywords with a count between 2 and 500
             [profile_keywords.append(kw[0]) for kw in cleaned_keywords if kw[1]>1 and kw[1]<501]
+            #if a profile exists then it saves the profile, otherwise it passes since profile must be created to be at this step
             if(Profile.objects.filter(user_id=data['user_id']).exists()):
                 player_profile = Profile.objects.get(user_id=data['user_id'])
                 player_profile.keyword = profile_keywords
@@ -162,27 +169,37 @@ def store_profile(request: HttpRequest) -> JsonResponse:
             })
         
 def get_keywords(game_title):
+    """Returns the keywords for a specific game with counts between 2 and 100"""
     words = word_count()
     query = Game.objects.all().filter(title = game_title).values()
     df = pd.DataFrame.from_records(query)
+    #returns the keywords with the counts
     keywords = return_keywords(re.findall(r'\w+', df['summary'].iloc[0]), words)
     keywords.sort(key = lambda x: x[1])
     cleaned_keywords = []
     [cleaned_keywords.append(kw) for kw in keywords if kw not in cleaned_keywords ]
     profile_keywords = []
+    #selects keywords with specified rarity
     [profile_keywords.append(kw[0]) for kw in cleaned_keywords if kw[1]>1 and kw[1]<101]
     return profile_keywords
 
 def word_count():
+    """Returns a list of keywords and their counts from all the summaries in the dataset"""
     games = pd.DataFrame.from_records(Game.objects.all().values())
-    count_vectoriser = CountVectorizer().fit(games['summary'])
-    words = count_vectoriser.transform(games['summary'])
+    #uses count vectoriser to count the words
+    count_vectoriser = CountVectorizer()
+    #constructs the matrix for the count_vectoriser
+    words = count_vectoriser.fit_transform(games['summary'])
+    #sums all the instances of the words
     count = words.sum(axis=0) 
+    #creates an array with format (word, count) for each unique word in the dataset
     frequency = [[word, count[0, i]] for word, i in count_vectoriser.vocabulary_.items()]
+    #orders it into rarity order
     frequency =sorted(frequency, key = lambda x: x[1], reverse=True)
     return frequency
 
 def return_keywords(summary, words):
+    """Returns keywords for a specified summary"""
     keyword_quantities = []
     for word in summary:
         for keyword in words:
@@ -192,17 +209,22 @@ def return_keywords(summary, words):
 
         
 def get_quiz_games(request: HttpRequest) -> JsonResponse:
+    """Uses the recommendation methods to return a list of games for the quiz"""
     success = False
     if request.method == 'GET':
         data = json.loads(request.session.__getitem__("_auth_user_id"))
         if (Profile.objects.filter(user_id=data).exists()):
+            #takes the temporary profile from the profiles table
             profile = Profile.objects.get(user_id=data)
+            #filters for number of players preference
             games = filter_num_players(profile.get_num_players_preference())
+            #uses only genre and creates a user profile dataframe
             user_profile = pd.DataFrame({
                 'title': ["user_profile_temp"],
                 'genre': [profile.get_genre()]
             })
             games = pd.concat([games, user_profile],ignore_index=True)
+            #generates recommendations only using genre 
             rec_games = generate_recomendations(games,user_profile, 'genre')
             success =  True
         return JsonResponse ({
@@ -211,6 +233,7 @@ def get_quiz_games(request: HttpRequest) -> JsonResponse:
             })
     
 def user_recommendations(request: HttpRequest) -> JsonResponse:
+    """Returns the main recommendations for a user"""
     success = False
     if request.method == 'GET':
         curr_user_id = json.loads(request.session.__getitem__("_auth_user_id"))
@@ -239,6 +262,7 @@ def user_recommendations(request: HttpRequest) -> JsonResponse:
                 'games_list' : rec_games,
             })
 def generate_non_rec_list(curr_user_id):
+    """Generates a list of games that are not going to be recommended to the user"""
     non_rec_list = []
     play_list = pd.DataFrame.from_records(PlayList.objects.filter(user_id = curr_user_id).values())
     dislike_list = pd.DataFrame.from_records(DislikeList.objects.filter(user_id = curr_user_id).values())
@@ -252,18 +276,18 @@ def generate_non_rec_list(curr_user_id):
     return non_rec_list
 
 def filter_list(filter_items):
+    """Filters the game dataset using a list of items
+    to be used with non rec list"""
     if(len(filter_items)>0):
         query = Game.objects.all()
         for item in filter_items:
             query = query.exclude(title = item)
     else:
         query = Game.objects.all()
-
     return pd.DataFrame.from_records(query.values())
 
-
-
 def filter_num_players(num_players_preference):
+    """Filters games using the number of players preference"""
     if(num_players_preference == 'Singleplayer'):
         query = Game.objects.exclude(num_players__contains = 'Online Multiplayer Up to').values()
         q1 = query.filter(num_players = '1 Player').values()
@@ -281,52 +305,71 @@ def filter_num_players(num_players_preference):
         query = Game.objects.exclude(num_players__contains = '1 Player').exclude(num_players__contains = 'No Online Multiplayer').values()
     else:
         query = Game.objects.all().values()
+    #games with a metascore of 75 and over are kept for the sake of speed and simplicity
     query = query.filter(metascore__gte = 75).values()
     return pd.DataFrame.from_records(query)
 
 
 def generate_recomendations(games, profile, field):
+        """Generates recommendations using tf-idf and cosine sim"""
+        #creates vectoriser object with english stop words
         tfidf = TfidfVectorizer(stop_words='english')
+        #fills all the null fields in the specified column with an empty string
         games[field] = games[field].fillna('')
+        #creates the tfidf matrix for the games
         games_tfidf = tfidf.fit_transform(games[field])
+        #creates a tfidf matrix for the user profile using the structure of the game matrix
         user_profile_tfidf = tfidf.transform(profile[field])
+        #calculates cosine sim using linear_kernel
         cosine_similarity = linear_kernel(user_profile_tfidf, games_tfidf)
+        #the results of the cosine similarity are then put into a list and taken in respect to the user profile
         similarity = list(enumerate(cosine_similarity[0]))
+        #they are sorted and the top 200 are taken
         similarity = sorted(similarity, key=lambda x: x[1], reverse=True)
         similarity = similarity[1:200]
         recs_index = [i[0] for i in similarity]
         rec_games = []
+        #the games are then added and any duplicates are removed
         [rec_games.append(game) for game in games['title'].iloc[recs_index] if game not in rec_games ]
         if 'user_profile_temp' in rec_games:
             rec_games.remove('user_profile_temp')
         return rec_games
 
 def add_keywords(title, curr_user_id):
+    """Adds keywords for a specified game and user to the user profile"""
+    #extracts keywords from game summary
     keywords = get_keywords(title)
     if(Profile.objects.filter(user_id=curr_user_id).exists()):
         player_profile = Profile.objects.get(user_id=curr_user_id)
         current_keywords = player_profile.keyword
         new_keywords = []
+        #appends new kewords list with current keywords
         new_keywords= re.findall(r'\w+', current_keywords)
+        #adds the new keywords if they are not already in the keyword list
         [new_keywords.append(keyword) for keyword in keywords if keyword not in new_keywords ]
+        #replaces current keywords with an updated keywords list
         player_profile.keyword = new_keywords
         player_profile.save()
 
 
 def remove_keywords(title, curr_user_id):
+    """Removes keywords for a specified game and user from the user profile"""
     keywords = get_keywords(title)
     if(Profile.objects.filter(user_id=curr_user_id).exists()):
         player_profile = Profile.objects.get(user_id=curr_user_id)
         current_keywords = re.findall(r'\w+', player_profile.keyword)
+        #removes keywords if they are found in the user profile
         [current_keywords.remove(keyword) for keyword in keywords if keyword in current_keywords]    
         player_profile.keyword =  current_keywords
         player_profile.save()
 
 
 def add_genres(game_title, curr_user_id):
+    """Adds genres for a specified game and user to the user profile"""
     if(Profile.objects.filter(user_id=curr_user_id).exists()):
         player_profile = Profile.objects.get(user_id=curr_user_id)
         genres = re.findall(r'\w+', player_profile.genre)
+        #removes unwanted characters from genre
         genres = player_profile.genre.replace("'", '')
         genres = genres.replace("[", '')
         genres = genres.replace("]", '')
@@ -340,8 +383,10 @@ def add_genres(game_title, curr_user_id):
         player_profile.save()
 
 def remove_genres(game_title, curr_user_id):
+    """Removes genres taken from a specified game and user from the user profile"""
     if(Profile.objects.filter(user_id=curr_user_id).exists()):
         player_profile = Profile.objects.get(user_id=curr_user_id)
+        #removes unwanted characters from genre
         genres = player_profile.genre.replace("'", '')
         genres = genres.replace("[", '')
         genres = genres.replace("]", '')
@@ -349,21 +394,25 @@ def remove_genres(game_title, curr_user_id):
         query = Game.objects.all().filter(title = game_title).values()
         df = pd.DataFrame.from_records(query)
         to_remove_genres = (df['genre'].iloc[0]).split(", ")
+        #removes the genres from the genre list stored in the user profile
         [genres.remove(genre) for genre in to_remove_genres if genre in genres]    
         player_profile.genre = genres
         player_profile.save()
         
 @csrf_exempt
 def like_game(request: HttpRequest) -> JsonResponse:
+    """Adds a game to the Play list"""
     success = False
     if request.method == 'POST':
         data = json.loads(request.body.decode('utf-8'))
         if (data['liked_game']!=""):
             if(PlayList.objects.filter(user_id = data['user_id'], play_list_game = data['liked_game']).exists() == False):
+                #creates a new entry if the game is not in the list already
                 play_list_entry = PlayList.objects.create(
                     play_list_game = data['liked_game'],
                     user_id = data['user_id'],
                 )
+                #adds keywords and genres for that game to the list to develop profile
                 add_keywords(data['liked_game'],data['user_id'])
                 add_genres(data['liked_game'],data['user_id'])
             return JsonResponse({
@@ -371,6 +420,7 @@ def like_game(request: HttpRequest) -> JsonResponse:
             })
         
 def get_user_liked(request: HttpRequest) -> JsonResponse:
+    """Gets the play list of the user"""
     success = False
     if request.method == 'GET':
         curr_user_id = json.loads(request.session.__getitem__("_auth_user_id"))
@@ -386,15 +436,18 @@ def get_user_liked(request: HttpRequest) -> JsonResponse:
         
 @csrf_exempt
 def dislike_game(request: HttpRequest) -> JsonResponse:
+    """Adds a game to the dislike list"""
     success = False
     if request.method == 'POST':
         data = json.loads(request.body.decode('utf-8'))
         if (data['disliked_game']!=""):
+            #creates a new entry if the game is not in the list already
             if(DislikeList.objects.filter(user_id = data['user_id'], dislike_list_game = data['disliked_game']).exists() == False):
                 dislike_list_entry = DislikeList.objects.create(
                     dislike_list_game = data['disliked_game'],
                     user_id = data['user_id'],
                 )
+                #removes keywords and genres for that game from the list to develop profile
                 remove_keywords(data['disliked_game'],data['user_id'])
                 remove_genres(data['disliked_game'],data['user_id'])
             return JsonResponse({
@@ -402,6 +455,7 @@ def dislike_game(request: HttpRequest) -> JsonResponse:
             })
     
 def get_user_disliked(request: HttpRequest) -> JsonResponse:
+    """Gets the dislike list of the user"""
     success = False
     if request.method == 'GET':
         curr_user_id = json.loads(request.session.__getitem__("_auth_user_id"))
@@ -418,15 +472,18 @@ def get_user_disliked(request: HttpRequest) -> JsonResponse:
 
 @csrf_exempt
 def completed_game(request: HttpRequest) -> JsonResponse:
+    """Adds a game to the completed list"""
     success = False
     if request.method == 'POST':
         data = json.loads(request.body.decode('utf-8'))
         if (data['completed_game']!=""):
             if(CompletedList.objects.filter(user_id = data['user_id'], completed_list_game = data['completed_game']).exists() == False):
+                #creates a new entry if the game is not in the list already
                 completed_list_entry = CompletedList.objects.create(
                     completed_list_game = data['completed_game'],
                     user_id = data['user_id'],
                 )
+                #adds keywords and genres for that game to the list to develop profile
                 add_keywords(data['completed_game'],data['user_id'])
                 add_genres(data['completed_game'],data['user_id'])
             return JsonResponse({
@@ -434,6 +491,7 @@ def completed_game(request: HttpRequest) -> JsonResponse:
             })
         
 def get_user_completed(request: HttpRequest) -> JsonResponse:
+    """Gets the Completed list of the user"""
     if request.method == 'GET':
         curr_user_id = json.loads(request.session.__getitem__("_auth_user_id"))
         completed_games = []
@@ -445,19 +503,19 @@ def get_user_completed(request: HttpRequest) -> JsonResponse:
                 'games_list' : completed_games,
             })
     
-
 @csrf_exempt
 def remove_list_game(request: HttpRequest) -> JsonResponse:
+    """Removes a game from a play, completed or dislike list"""
     success = False
     if request.method == 'DELETE':
         data = json.loads(request.body.decode('utf-8'))
+        #checks what list the game is specified for and removes it from that list.
         if (data['curr_list'] == 'completed'):
             game = CompletedList.objects.filter(user_id = data['user_id'], completed_list_game = data['game_to_remove'])
         elif (data['curr_list'] == 'disliked'):
             game = DislikeList.objects.filter(user_id = data['user_id'], dislike_list_game = data['game_to_remove'])
         else:
             game = PlayList.objects.filter(user_id = data['user_id'], play_list_game = data['game_to_remove'])
-            
         game.delete()
         success = True
         return JsonResponse ({
@@ -465,24 +523,29 @@ def remove_list_game(request: HttpRequest) -> JsonResponse:
             })
     
 def get_game_data(request: HttpRequest, curr_title: str) -> JsonResponse:
+    """Returns the metadata for a game to be viewed"""
     success = False
     if request.method == 'GET':
         curr_game_data = {}
         if (Game.objects.filter(title=curr_title).exists()):
             curr_game_data  = Game.objects.filter(title=curr_title).first().to_dict()
+            #extracts all the platforms for the game and creates a list of platforms
             platforms = list(Game.objects.filter(title=curr_title).values_list('platforms', flat=True))
             curr_game_data ['platforms'] = ', '.join(platforms)
         return JsonResponse({
             'games': curr_game_data  
             })
+    
 @csrf_exempt
 def profile(request: HttpRequest) -> JsonResponse:
+    """Handles profile updates and viewing"""
     success = False
     error_msg = ''
     if request.method == 'GET':
         curr_user_id = json.loads(request.session.__getitem__("_auth_user_id"))
         user = {}
         if (MyUser.objects.filter(id=curr_user_id).exists()):
+            #returns the user object on a GET request
             user = MyUser.objects.get(id=curr_user_id).to_dict()
         return JsonResponse({
             'user': user  
@@ -491,6 +554,7 @@ def profile(request: HttpRequest) -> JsonResponse:
         data = json.loads(request.body.decode('utf-8'))
         if (MyUser.objects.filter(id=data['user_id']).exists()):
             curr_user = MyUser.objects.get(id=data['user_id'])
+            #changes the database record and saves the user record if the user has chosen to change a field
             if 'first_name' in data:
                 if data['first_name'].strip():
                     curr_user.first_name = data['first_name']
@@ -499,6 +563,7 @@ def profile(request: HttpRequest) -> JsonResponse:
                     curr_user.last_name = data['surname']
             if 'username' in data:
                 if ((data['username']).strip()):
+                    #checks if username exists in database and returns error message if it is the case
                     if(MyUser.objects.filter(username=data['username']).exists()):
                         success = False
                         error_msg = "This username already exists!"
@@ -518,8 +583,10 @@ def profile(request: HttpRequest) -> JsonResponse:
             })    
     
 def home_page(request: HttpRequest) -> JsonResponse:
+    """Returns home page lists to be used on the home page"""
     if request.method == 'GET':
         curr_user_id = json.loads(request.session.__getitem__("_auth_user_id"))
+        #initialise empty variables
         top_genre = ''
         play_list_overview = []
         completed_list_overview = []
@@ -562,6 +629,7 @@ def home_page(request: HttpRequest) -> JsonResponse:
         })    
 
 def load_db(request: HttpRequest) -> HttpResponse:
+    """Loads the game dataset into the database using the file from the public github repository"""
     games = pd.read_csv('https://raw.githubusercontent.com/aadamhuda/VideoGamesRecommendationSystem/main/mainapp/static/metacritic_games_master.csv')
     Game.objects.all().delete()
     rows = games.iterrows()

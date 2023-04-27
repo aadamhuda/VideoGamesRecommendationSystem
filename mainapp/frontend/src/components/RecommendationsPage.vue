@@ -28,7 +28,7 @@ export default defineComponent( {
             this.user_id = data.user_id
         },
         async get_recs() {
-            this.empty = true
+            this.empty = true //empty set to true to begin loading 
             this.curr_game = ''
             this.games_list = []
             this.loading = true
@@ -100,6 +100,7 @@ export default defineComponent( {
             let response = await fetch("https://api.rawg.io/api/games?key="+this.rawg_api_key+ "&search="+this.curr_game, {method: "GET"})
             let data = await response.json()
             for (let i = 0; i < 15; i++) {
+                //top 15 api results are checked for a match, and if so then the screenshots are loaded
                 if (this.curr_game === data.results[i].name) {
                     this.game_choice = i
                     break

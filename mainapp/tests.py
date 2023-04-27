@@ -6,7 +6,6 @@ from django.urls import reverse
 from . import views
 from .forms import LoginForm
 
-# Create your tests here.
 class ViewTests(TestCase):
     def setUp(self):
         self.client = Client()
